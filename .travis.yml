@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+- '6'
+- '8'
+- '10'
+deploy:
+  provider: npm
+  email: kapa89@me.com
+  api_key:
+    secure: fZq17uunAEXB1xjb4ZTSy1E8wCMHtNfzCvZyZx5I3UzY1viOwynZHYbsgDI/4HAPDhmn1NPR8eC0uyXseogJbw7sg+4vKHEWoXGjG8Xo7kroSINz7wRS8LntoSMWmb8wmrjPN/kw3Nuoec5In03wFyFxq0DnV9tRYAdzWlWizyJB3hKPbC0mJAM/Ra9T5jOAsZEdAyp3eUrKljJLSyIhTj2xIPmxqc/ww6RDJd8AuacYDIeKSY5Uc7yA2Qy8VJ4lQUa8k6I7OpcKalDjlds1wYYX1IdGmKFD4qWFfzKGSh4EtpftCnbp5eB6hWCN5KKOdw+gBhvbegyj7xqMkBc/ud4Wuz2vC1kWCAQlmZ7nbVGcVBCpR4gyzEE1R7RMbTswmUxrAgKrSns8ojHDy/07j2dtkI50+74tr1/cXuULG0BGeuGoNgkVX33kcsHjj+DcVt19cJ4FPKSBTt3r0PSqinwJ9PRQaLiGEyEZ0Yec6Bzwzw9xWbZRIHw7jqqBBRC4gpj5Wl3Gq4H6u7sXEWfyPJl6SC8i8atgnuse94yAUcYVaeMGDIb1PGL8LCCzva5fhnlngklcibHveRPV/z3Di0Rq51fFOfKtp0SwTmgM4TkjUQ83sn61Xhd416C46QrTtdU61MzjQp8I0glpb83+AGYVK2AgkKFCTwtkk5hnNXk=
+  on:
+    tags: true
+    repo: nucleode/arecibo
