@@ -22,7 +22,7 @@ npm i arecibo
 ## Usage 
 
 ```javascript
-const arecibo = require('arecibo') // or import arecibo from 'arecibo'
+const arecibo = require('arecibo') // or import * as arecibo from 'arecibo'
 
 fastify.register(arecibo, {
   message: 'Put here your custom message', // optional, default to original arecibo message 
