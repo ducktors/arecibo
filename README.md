@@ -1,12 +1,29 @@
 # arecibo
 Fastify ping responder for Kubernetes Liveness and Readiness Probes
 
-## Usage
+## Installation
 
-Install with ```npm i arecibo```
+`npm i arecibo`
 
-On Kubernetes deployment manifest adds 
+## Usage 
+
+```JS
+const arecibo = require('arecibo') // or import arecibo from 'arecibo'
+
+fastify.register(arecibo, {
+  message: 'Put here your custom message', // optional, default to original arecibo message 
+  readinessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/readiness
+  livenessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/liveness
+  readinessCallback: (req, reply) =>  reply.type('text/html').send('Put here your custom message') // optional
+  livenessCallback: (req, reply) =>  reply.type('text/html').send('Put here your custom message') // optional
+})
+
+```
+
+On Kubernetes add deployment manifest
+
 ```YAML
+...
 livenessProbe:
   httpGet:
     path: /arecibo/liveness
@@ -27,6 +44,7 @@ readinessProbe:
 initialDelaySeconds: 5
 timeoutSeconds: 1
 periodSeconds: 15
+...
 ```
 
 ### Fun fact: where does the name come from? 
