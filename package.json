@@ -13,7 +13,8 @@
     "build-js": "babel ./src --out-dir build --extensions \".ts,.tsx\" --source-maps inline",
     "prettier": "prettier --loglevel warn --write \"src/**/*.{ts,tsx}\"",
     "prelint": "npm run prettier",
-    "lint": "tslint --fix -c tslint.json -t stylish -p ./tsconfig.json"
+    "lint": "tslint --fix -c tslint.json -t stylish -p ./tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
