@@ -1,5 +1,8 @@
-# arecibo
-Fastify ping responder for Kubernetes Liveness and Readiness Probes
+<div align="center">
+
+![arecibo-logo-v1](https://user-images.githubusercontent.com/6388707/44850629-2441de80-ac5e-11e8-9508-10beca9d17ef.png)
+            
+</div>
 
 ## Installation
 
