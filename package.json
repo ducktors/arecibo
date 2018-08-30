@@ -17,7 +17,15 @@
     "url": "git+https://github.com/nucleode/arecibo.git"
   },
   "keywords": [
-    "kubernetes"
+    "kubernetes",
+    "fastify",
+    "fastify-plugin",
+    "probe",
+    "liveness",
+    "readiness",
+    "pinger",
+    "monitoring",
+    "kubernetes-monitoring"
   ],
   "author": "kubernetes-monitoring",
   "license": "MIT",
