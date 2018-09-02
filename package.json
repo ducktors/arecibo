@@ -1,6 +1,6 @@
 {
   "name": "arecibo",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Fastify plugin that respondes to kubernetes readiness and liveness probes.",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
