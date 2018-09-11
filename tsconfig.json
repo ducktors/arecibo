@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "target": "es2017",
+    "target": "es2015",
     "module": "commonjs",
-    "outDir": "build",
+    "outDir": "lib",
     "rootDir": "./src",
     "pretty": true,
     "noEmitOnError": true,
