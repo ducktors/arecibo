@@ -7,6 +7,9 @@ if: tag IS present
 branches:
   only:
   - "/^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$/"
+before_script:
+  npm i
+script: npm run build
 deploy:
   provider: npm
   email: github@nucleode.com
