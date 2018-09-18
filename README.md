@@ -7,7 +7,6 @@
 <div align="center">
 
 [![NPM version](https://img.shields.io/npm/v/arecibo.svg?style=flat)](https://www.npmjs.com/package/arecibo)
-[![Build Status](https://travis-ci.org/nucleode/arecibo.svg?branch=master)](https://travis-ci.org/nucleode/arecibo)
 [![NPM downloads](https://img.shields.io/npm/dm/arecibo.svg?style=flat)](https://www.npmjs.com/package/arecibo) 
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier) [![Greenkeeper badge](https://badges.greenkeeper.io/nucleode/arecibo.svg)](https://greenkeeper.io/)
 
