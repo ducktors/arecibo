@@ -7,12 +7,11 @@ if: tag IS present
 branches:
   only:
   - "/^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$/"
-before_script:
+before_deploy:
   npm i
-script: npm run build
 deploy:
   provider: npm
-  email: github@nucleode.com
+  email: bot@nucleode.com
   api_key:
     secure: TUHJSGKgvqw4hmqzFhw+llyWQF6rqxZCRmaMujLLc9qNWWFfYdgtAHjxACAuhURajvMiggOswvtnTISMCFoNhMeTqIUnE+FiVj3LxA+XpRCrLVvdPP2LCe2B5NF7Yq2fznJLDp/v23H6xLzVaEbAH7aZ6VCDiiZQ5kP9P7+pIA3j+BJjxQilR6eUIWD/4wdb+zfULM1s7MfVyOChcSrC/Q2mCufQp1mvS+pWqHem0JjrNL8Pfo8US0eg37xEJNy9TAZefYt6qdz1kS3hZ3Rzjak5jLPWQEPTg4zceszbUpOlDjtAIBQUnttNZsnE8fbA5MiQviWi4ucmRVP4iFJLZhYJ4LCa48Lr2c4W231XG7HHkDDcYRHf0NjCGi0Aqv81WXGGNOQCpUmLja+xyBJbVQ74xMryE9yo8xe0Sc8/39VRvGmpNYuC5+QqSDfTRGQDyu9axtPo9x4hFiY8cUkfQDzWSRgSdSsCRxFzgbWzMfChy0BRK6RVW6AGF8leDN6FhMLc30m8bdWNIMl3S4nkrDffH4B/gM32gJS4E03C35ZqwczW5UndiPBXRI4clER2vwzAKhD+MOGR/eN6BA9A9kSP9dtx5piUxRK5p2WS7WaHN3b0Ww1MtPcy8OF2VeJGJp3YzX/f6Ead6Wy7qo7x4NGc/IYuZHcW2ssm+Vy2jKk=
   on:
