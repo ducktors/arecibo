@@ -56,5 +56,9 @@
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
     "typescript": "^3.0.3"
-  }
+  },
+  "files": [
+    "/lib",
+    "/lib-esm"
+  ]
 }
