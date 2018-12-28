@@ -1,6 +1,8 @@
 import { RequestHandler } from 'fastify'
 import { ServerResponse, IncomingMessage } from 'http'
 
+import { readinessSchema, livenessSchema } from './schema'
+
 const READINESS_URL = '/arecibo/readiness'
 const LIVENESS_URL = '/arecibo/liveness'
 
@@ -106,8 +108,8 @@ export default function arecibo(fastify, opts: IOpts, next: (err?: Error) => voi
   const readinessCallback = opts.readinessCallback || defaultResponse(message)
   const livenessCallback = opts.livenessCallback || defaultResponse(message)
 
-  fastify.get(readinessURL, readinessCallback)
-  fastify.get(livenessURL, livenessCallback)
+  fastify.get(readinessURL, { schema: readinessSchema }, readinessCallback)
+  fastify.get(livenessURL, { schema: livenessSchema }, livenessCallback)
 
   next()
 }
