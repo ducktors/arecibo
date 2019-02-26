@@ -45,8 +45,7 @@
     "typescript": "~3.3.3333"
   },
   "files": [
-    "/lib",
-    "/lib-esm"
+    "/lib"
   ],
   "dependencies": {
     "fastify": "~2.0.0",
