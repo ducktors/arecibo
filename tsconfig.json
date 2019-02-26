@@ -4,7 +4,7 @@
     "target": "es2015",
     "module": "commonjs",
     "outDir": "lib",
-    "rootDir": "./src",
+    "rootDir": "src",
     "pretty": true,
     "noEmitOnError": true,
     "experimentalDecorators": true,
@@ -22,7 +22,8 @@
   },
   "exclude": [
     "node_modules",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "lib"
   ],
   "include": [
     "**/*.ts"

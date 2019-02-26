@@ -1,5 +1,6 @@
-import { RequestHandler } from 'fastify'
-import { ServerResponse, IncomingMessage } from 'http'
+import { RequestHandler, Plugin } from 'fastify'
+import { ServerResponse, IncomingMessage, Server } from 'http'
+import fp from 'fastify-plugin'
 
 import { readinessSchema, livenessSchema } from './schema'
 
@@ -89,7 +90,7 @@ const defaultResponse = (message: string): RequestHandler<IncomingMessage, Serve
   reply.type('text/html').send(message)
 }
 
-interface IOpts {
+interface Opts {
   message?: string
   readinessURL?: string
   livenessURL?: string
@@ -97,19 +98,27 @@ interface IOpts {
   livenessCallback?: RequestHandler<IncomingMessage, ServerResponse>
   [key: string]: any
 }
-
-export default function arecibo(fastify, opts: IOpts, next: (err?: Error) => void): void {
-  const {
-    message = defaultMessage,
-    readinessURL = READINESS_URL,
-    livenessURL = LIVENESS_URL,
-  } = opts
-
-  const readinessCallback = opts.readinessCallback || defaultResponse(message)
-  const livenessCallback = opts.livenessCallback || defaultResponse(message)
-
-  fastify.get(readinessURL, { schema: readinessSchema }, readinessCallback)
-  fastify.get(livenessURL, { schema: livenessSchema }, livenessCallback)
-
-  next()
+interface Arecibo extends Plugin<Server, IncomingMessage, ServerResponse, Opts> {
+  default: Arecibo
 }
+
+const arecibo: any = fp<Server, IncomingMessage, ServerResponse, Opts>(
+  function(fastify, opts, next) {
+    const {
+      message = defaultMessage,
+      readinessURL = READINESS_URL,
+      livenessURL = LIVENESS_URL,
+    } = opts
+
+    const readinessCallback = opts.readinessCallback || defaultResponse(message)
+    const livenessCallback = opts.livenessCallback || defaultResponse(message)
+
+    fastify.get(readinessURL, { schema: readinessSchema }, readinessCallback)
+    fastify.get(livenessURL, { schema: livenessSchema }, livenessCallback)
+
+    next()
+  },
+  { fastify: '2.x' },
+)
+arecibo.default = arecibo
+export = arecibo as Arecibo

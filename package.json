@@ -2,17 +2,13 @@
   "name": "arecibo",
   "version": "0.8.0",
   "description": "Fastify plugin that respondes to kubernetes readiness and liveness probes.",
-  "main": "./lib/index.js",
-  "module": "./lib-es/index.js",
+  "main": "./lib",
   "types": "./lib/index.d.ts",
   "scripts": {
     "type-check": "tsc -p ./tsconfig.json --noEmit",
-    "clean-build": "rimraf ./lib ./lib-esm && mkdir lib lib-esm",
+    "clean-build": "rimraf ./lib && mkdir lib",
     "prebuild": "npm-run-all clean-build lint type-check",
-    "build": "npm run build-types && npm-run-all build-js build-esm",
-    "build-types": "tsc --emitDeclarationOnly",
-    "build-js": "babel ./src --out-dir lib --extensions \".ts,.tsx\" -s",
-    "build-esm": "tsc -m es6 --outDir lib-esm --declaration false",
+    "build": "tsc -p ./tsconfig.json",
     "prettier": "prettier --loglevel warn --write \"src/**/*.{ts,tsx}\"",
     "prelint": "npm run prettier",
     "lint": "tslint --fix -c tslint.json -t stylish -p ./tsconfig.json",
@@ -40,25 +36,20 @@
   },
   "homepage": "https://github.com/nucleode/arecibo#readme",
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-class-properties": "^7.0.0",
-    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/preset-typescript": "^7.0.0",
-    "@types/node": "^10.9.3",
-    "babel-plugin-add-module-exports": "^1.0.0",
-    "fastify": "^1.11.1",
-    "npm-run-all": "^4.1.3",
-    "prettier": "^1.14.2",
-    "rimraf": "^2.6.2",
-    "tslint": "^5.11.0",
-    "tslint-config-prettier": "^1.15.0",
-    "typescript": "^3.0.3"
+    "@types/node": "10.9.3",
+    "npm-run-all": "4.1.5",
+    "prettier": "1.16.4",
+    "rimraf": "2.6.3",
+    "tslint": "5.13.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "~3.3.3333"
   },
   "files": [
     "/lib",
     "/lib-esm"
-  ]
+  ],
+  "dependencies": {
+    "fastify": "~2.0.0",
+    "fastify-plugin": "~1.5.0"
+  }
 }
