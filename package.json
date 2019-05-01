@@ -36,19 +36,19 @@
   },
   "homepage": "https://github.com/nucleode/arecibo#readme",
   "devDependencies": {
-    "@types/node": "10.9.3",
+    "@types/node": "11.13.8",
+    "fastify": "2.3.0",
     "npm-run-all": "4.1.5",
-    "prettier": "1.16.4",
+    "prettier": "1.17.0",
     "rimraf": "2.6.3",
-    "tslint": "5.13.0",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "~3.3.3333"
+    "tslint": "5.16.0",
+    "tslint-config-prettier": "1.18.0",
+    "typescript": "3.4.5"
   },
   "files": [
     "/lib"
   ],
   "dependencies": {
-    "fastify": "~2.0.0",
     "fastify-plugin": "~1.5.0"
   }
 }
