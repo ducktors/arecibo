@@ -62,9 +62,9 @@ readinessProbe:
     httpHeaders:
       - name: X-Custom-Header
         value: Awesome
-initialDelaySeconds: 5
-timeoutSeconds: 1
-periodSeconds: 15
+  initialDelaySeconds: 5
+  timeoutSeconds: 1
+  periodSeconds: 15
 
 ...
 ```
