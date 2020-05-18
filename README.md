@@ -31,8 +31,9 @@ fastify.register(arecibo, {
   message: 'Put here your custom message', // optional, default to original arecibo message
   readinessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/readiness
   livenessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/liveness
-  readinessCallback: (req, reply) =>  reply.type('text/html').send('Put here your custom message') // optional
-  livenessCallback: (req, reply) =>  reply.type('text/html').send('Put here your custom message') // optional
+  readinessCallback: (req, reply) => reply.type('text/html').send('Put here your custom message'), // optional
+  livenessCallback: (req, reply) => reply.type('text/html').send('Put here your custom message'), // optional
+  logLevel: 'error', // optional, defaults to 'info'; can be trace, debug, info, warn, error, and fatal
 })
 
 ```

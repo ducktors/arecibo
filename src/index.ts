@@ -96,6 +96,7 @@ interface Opts {
   livenessURL?: string
   readinessCallback?: RequestHandler<IncomingMessage, ServerResponse>
   livenessCallback?: RequestHandler<IncomingMessage, ServerResponse>
+  logLevel: string
   [key: string]: any
 }
 interface Arecibo extends Plugin<Server, IncomingMessage, ServerResponse, Opts> {
@@ -108,13 +109,14 @@ const arecibo: any = fp<Server, IncomingMessage, ServerResponse, Opts>(
       message = defaultMessage,
       readinessURL = READINESS_URL,
       livenessURL = LIVENESS_URL,
+      logLevel = 'info',
     } = opts
 
     const readinessCallback = opts.readinessCallback || defaultResponse(message)
     const livenessCallback = opts.livenessCallback || defaultResponse(message)
 
-    fastify.get(readinessURL, { schema: readinessSchema }, readinessCallback)
-    fastify.get(livenessURL, { schema: livenessSchema }, livenessCallback)
+    fastify.get(readinessURL, { schema: readinessSchema, logLevel }, readinessCallback)
+    fastify.get(livenessURL, { schema: livenessSchema, logLevel }, livenessCallback)
 
     next()
   },
