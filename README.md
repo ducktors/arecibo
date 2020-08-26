@@ -14,7 +14,7 @@
 </div>
 
 ## Installation
-This module only supports 2.x.x versions of fastify.
+__Note: Arecibo version 1.x.x supports version 2.x.x of Fastify. Arecibo version 2.x.x supports version 3.x.x of Fastify.__
 
 ```bash
 npm i arecibo
