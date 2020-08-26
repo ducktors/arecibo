@@ -1,5 +1,4 @@
-import { RequestHandler, Plugin } from 'fastify'
-import { ServerResponse, IncomingMessage, Server } from 'http'
+import { FastifyPlugin, FastifyPluginOptions, LogLevel, RouteHandler } from 'fastify'
 import fp from 'fastify-plugin'
 
 import { readinessSchema, livenessSchema } from './schema'
@@ -83,28 +82,22 @@ const defaultMessage = `
 01111001111101001111000
 `
 
-const defaultResponse = (message: string): RequestHandler<IncomingMessage, ServerResponse> => (
-  _,
-  reply,
-) => {
+const defaultResponse = (message: string): RouteHandler => (_, reply) => {
   reply.type('text/html').send(message)
 }
 
-interface Opts {
+interface Opts extends FastifyPluginOptions {
   message?: string
   readinessURL?: string
   livenessURL?: string
-  readinessCallback?: RequestHandler<IncomingMessage, ServerResponse>
-  livenessCallback?: RequestHandler<IncomingMessage, ServerResponse>
-  logLevel: string
-  [key: string]: any
+  readinessCallback?: RouteHandler
+  livenessCallback?: RouteHandler
+  logLevel: LogLevel
 }
-interface Arecibo extends Plugin<Server, IncomingMessage, ServerResponse, Opts> {
-  default: Arecibo
-}
+type Arecibo = FastifyPlugin<Opts> & { default: Arecibo }
 
-const arecibo: any = fp<Server, IncomingMessage, ServerResponse, Opts>(
-  function(fastify, opts, next) {
+const arecibo: any = fp<Opts>(
+  function (fastify, opts, next) {
     const {
       message = defaultMessage,
       readinessURL = READINESS_URL,
@@ -120,7 +113,10 @@ const arecibo: any = fp<Server, IncomingMessage, ServerResponse, Opts>(
 
     next()
   },
-  { fastify: '2.x' },
+  {
+    name: 'arecibo',
+    fastify: '^3.0.0',
+  },
 )
 arecibo.default = arecibo
 export = arecibo as Arecibo
