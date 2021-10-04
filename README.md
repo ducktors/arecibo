@@ -14,7 +14,13 @@
 </div>
 
 ## Installation
-__Note: Arecibo version 1.x.x supports version 2.x.x of Fastify. Arecibo version 2.x.x supports version 3.x.x of Fastify.__
+__Note: Arecibo version 1 supports version 2 of Fastify. Arecibo version 2 supports version 3 of Fastify.__
+
+| Arecibo version | Fastify version | Branch |
+| -- | -- | -- |
+| [v2.0.0](https://github.com/nucleode/arecibo/releases/tag/v2.0.0) | Fastify 3 | [master](https://github.com/nucleode/arecibo/tree/master) |
+| [v1.1.0](https://github.com/nucleode/arecibo/releases/tag/v1.1.0) | Fastify 2 | [fastify2](https://github.com/nucleode/arecibo/tree/fastify2) | 
+
 
 ```bash
 npm i arecibo
