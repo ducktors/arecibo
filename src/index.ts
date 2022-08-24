@@ -115,7 +115,7 @@ const arecibo: any = fp<Opts>(
   },
   {
     name: 'arecibo',
-    fastify: '^3.0.0',
+    fastify: '^3.0.0 ^4.0.0',
   },
 )
 arecibo.default = arecibo
