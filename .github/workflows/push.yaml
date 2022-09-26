@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ${{ matrix.node-version }}
+    name: Build
+    strategy:
+      matrix:
+        node-version: [14.x,16.x,18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install with npm
+        run: npm install
+      - name: Lint code
+        run: npm run lint
+      - name: Build
+        run: npm run build
