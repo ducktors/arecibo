@@ -18,7 +18,7 @@ __Note: Arecibo version 1 supports version 2 of Fastify. Arecibo version 2 suppo
 
 | Arecibo version | Fastify version | Branch |
 | -- | -- | -- |
-| [v2.0.0](https://github.com/nucleode/arecibo/releases/tag/v2.0.0) | Fastify 3 & 4 | [master](https://github.com/nucleode/arecibo/tree/master) |
+| [v2.1.1](https://github.com/nucleode/arecibo/releases/tag/v2.1.1) | Fastify 3 & 4 | [master](https://github.com/nucleode/arecibo/tree/master) |
 | [v1.1.0](https://github.com/nucleode/arecibo/releases/tag/v1.1.0) | Fastify 2 | [fastify2](https://github.com/nucleode/arecibo/tree/fastify2) | 
 
 
