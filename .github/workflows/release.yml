@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v3
+        name: Install Node
+        with:
+          node-version: 18
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 7
+      - name: Install dependencies
+        run: pnpm install
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.DUCKTORS_PAT }}
+          NPM_TOKEN: ${{ secrets.DUCKTORS_NPM_TOKEN }}
+        run: pnpm dlx semantic-release
