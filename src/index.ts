@@ -82,9 +82,11 @@ const defaultMessage = `
 01111001111101001111000
 `
 
-const defaultResponse = (message: string): RouteHandler => (_, reply) => {
-  reply.type('text/html').send(message)
-}
+const defaultResponse =
+  (message: string): RouteHandler =>
+  (_, reply) => {
+    reply.type('text/html').send(message)
+  }
 
 interface Opts extends FastifyPluginOptions {
   message?: string

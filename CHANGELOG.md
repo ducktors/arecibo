@@ -6,5 +6,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - 2018-12-28
 ### Added
-- Schemas on readiness and liveness routes. [Pull reference.](https://github.com/nucleode/arecibo/pull/3)
+- Schemas on readiness and liveness routes. [Pull reference.](https://github.com/ducktors/arecibo/pull/3)
 
