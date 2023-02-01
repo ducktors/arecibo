@@ -76,6 +76,17 @@ readinessProbe:
 ...
 ```
 
+## How to commit
+
+This repo uses [Semantic Release](https://github.com/semantic-release/semantic-release) with Conventional Commits.
+Releases are automatically created based on the type of commit message: feat for minor and fix for patch.
+
+```
+feat: new feature ---> 1.x.0
+fix: fix a bug ---> 1.0.x
+```
+
+
 ## Reference
 * <a href="https://github.com/fastify/fastify">Fastify</a>
 * <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/">Configure Liveness and Readiness Probes</a>
