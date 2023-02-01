@@ -1,6 +1,6 @@
 {
   "branches": [
-    "main"
+    "master"
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -27,7 +27,7 @@
     [
       "@semantic-release/github",
       {
-        "successComment": false
+        "successComment": true
       }
     ]
   ]

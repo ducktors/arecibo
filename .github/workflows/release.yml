@@ -18,18 +18,20 @@ jobs:
         name: Checkout
         with:
           persist-credentials: false
+
       - uses: actions/setup-node@v3
         name: Install Node
         with:
           node-version: 18
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
-        with:
-          version: 7
+
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.DUCKTORS_PAT }}
           NPM_TOKEN: ${{ secrets.DUCKTORS_NPM_TOKEN }}
-        run: pnpm dlx semantic-release
+        run: npx semantic-release
