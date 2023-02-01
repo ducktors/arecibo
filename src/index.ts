@@ -1,10 +1,9 @@
 import { FastifyPlugin, FastifyPluginOptions, LogLevel, RouteHandler } from 'fastify'
 import fp from 'fastify-plugin'
 
-import { readinessSchema, livenessSchema } from './schema'
+import { healthSchema, readinessSchema, livenessSchema } from './schema'
 
-const READINESS_URL = '/arecibo/readiness'
-const LIVENESS_URL = '/arecibo/liveness'
+const HEALTH_URL = '/healthz'
 
 const defaultMessage = `
 00000010101010000000000
@@ -92,8 +91,10 @@ interface Opts extends FastifyPluginOptions {
   message?: string
   readinessURL?: string
   livenessURL?: string
+  healthURL?: string
   readinessCallback?: RouteHandler
   livenessCallback?: RouteHandler
+  healthCallback?: RouteHandler
   logLevel: LogLevel
 }
 type Arecibo = FastifyPlugin<Opts> & { default: Arecibo }
@@ -102,16 +103,22 @@ const arecibo: any = fp<Opts>(
   function (fastify, opts, next) {
     const {
       message = defaultMessage,
-      readinessURL = READINESS_URL,
-      livenessURL = LIVENESS_URL,
+      healthURL = HEALTH_URL,
+      readinessURL,
+      livenessURL,
       logLevel = 'info',
     } = opts
 
-    const readinessCallback = opts.readinessCallback || defaultResponse(message)
-    const livenessCallback = opts.livenessCallback || defaultResponse(message)
-
-    fastify.get(readinessURL, { schema: readinessSchema, logLevel }, readinessCallback)
-    fastify.get(livenessURL, { schema: livenessSchema, logLevel }, livenessCallback)
+    const healthCallback = opts.healthCallback || defaultResponse(message)
+    fastify.get(healthURL, { schema: healthSchema, logLevel }, healthCallback)
+    if (opts.readinessURL !== undefined) {
+      const readinessCallback = opts.readinessCallback || defaultResponse
+      fastify.get(readinessURL, { schema: readinessSchema, logLevel }, readinessCallback)
+    }
+    if (opts.livenessURL !== undefined) {
+      const livenessCallback = opts.livenessCallback || defaultResponse(message)
+      fastify.get(livenessURL, { schema: livenessSchema, logLevel }, livenessCallback)
+    }
 
     next()
   },

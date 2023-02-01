@@ -13,14 +13,13 @@
 
 </div>
 
-## Installation
-__Note: Arecibo version 1 supports version 2 of Fastify. Arecibo version 2 supports version 3 of Fastify.__
-
-| Arecibo version | Fastify version | Branch |
+| Arecibo version | Fastify version | Status |
 | -- | -- | -- |
-| [v2](https://github.com/ducktors/arecibo/releases/tag/v2.2.0) | Fastify 3 & 4 | [master](https://github.com/ducktors/arecibo/tree/master) |
-| [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | deprecated | 
+| [v3](https://github.com/ducktors/arecibo/releases/tag/v3.0.0) | Fastify 4 | Active |
+| [v2](https://github.com/ducktors/arecibo/releases/tag/v2.2.0) | Fastify 3, 4 | Only security patch |
+| [v1](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | Deprecated |
 
+## Installation
 
 ```bash
 npm i arecibo
@@ -28,33 +27,70 @@ npm i arecibo
 
 ## Usage in Node.js
 
+Minimal setup:
+
 ```javascript
-const arecibo = require('arecibo')
-// or import arecibo from 'arecibo'
+
+import arecibo from 'arecibo'
+// const arecibo = require('arecibo')
 // or import * as arecibo from 'arecibo'
 
 fastify.register(arecibo, {
-  message: 'Put here your custom message', // optional, default to original arecibo message
-  readinessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/readiness
-  livenessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/liveness
-  readinessCallback: (req, reply) => reply.type('text/html').send('Put here your custom message'), // optional
-  livenessCallback: (req, reply) => reply.type('text/html').send('Put here your custom message'), // optional
+  message: 'Alive', // optional, default to original arecibo message
   logLevel: 'error', // optional, defaults to 'info'; can be trace, debug, info, warn, error, and fatal
 })
 
 ```
+
+```bash
+
+$ curl http://localhost:3000/healthz
+Alive%
+
+```
+
+
+Custom setup:
+
+```javascript
+
+import arecibo from 'arecibo'
+// const arecibo = require('arecibo')
+// or import * as arecibo from 'arecibo'
+
+fastify.register(arecibo, {
+  message: 'Put here your custom message', // optional, default to original arecibo message
+  readinessURL: '/put/here/your/custom/url', // optional, 
+  livenessURL: '/put/here/your/custom/url', // optional,
+  readinessCallback: (req, reply) => reply.type('text/html').send('Ahoy, I am readiness probe'), // optional
+  livenessCallback: (req, reply) => reply.type('text/html').send('Hej, I am liveness probe'), // optional
+  logLevel: 'error', // optional, defaults to 'info'; can be trace, debug, info, warn, error, and fatal
+})
+
+```
+
+```bash
+
+$ curl http://localhost:3000/probe/liveness
+Hej, I am liveness probe%
+
+$ curl http://localhost:3000/probe/readiness
+Ahoy, I am readiness probe%
+
+```
+
 ### Note for typescript users
 
 If you set `"esModuleInterop": true` you must import this module using `import arecibo from 'arecibo'`.
 
-## On Kubernetes add deployment manifest
+### Example on Kubernetes Deployment
 
 ```yaml
 ...
 
 livenessProbe:
   httpGet:
-    path: /arecibo/liveness
+    path: /probe/liveness
     port: 80
     httpHeaders:
       - name: X-Custom-Header
@@ -64,7 +100,7 @@ livenessProbe:
   periodSeconds: 15
 readinessProbe:
   httpGet:
-    path: /arecibo/readiness
+    path: /probe/readiness
     port: 80
     httpHeaders:
       - name: X-Custom-Header
