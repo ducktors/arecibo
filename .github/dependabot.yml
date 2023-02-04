@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "fix(deps)"
     assignees:
       - "matteovivona"
     reviewers:
