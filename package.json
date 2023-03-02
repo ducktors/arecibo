@@ -1,6 +1,6 @@
 {
   "name": "arecibo",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Fastify plugin that respondes to kubernetes readiness and liveness probes.",
   "main": "./lib",
   "types": "./lib/index.d.ts",
@@ -49,7 +49,7 @@
     "@semantic-release/github": "^8.0.6",
     "@semantic-release/npm": "^9.0.1",
     "@semantic-release/release-notes-generator": "^10.0.3",
-    "@types/node": "^16.18.1",
+    "@types/node": "^18.11.19",
     "commitizen": "^4.2.5",
     "commitlint-config-cz": "^0.13.3",
     "commitlint-plugin-function-rules": "^1.7.1",

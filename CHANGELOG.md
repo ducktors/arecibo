@@ -1,9 +1,9 @@
-# [2.2.0](https://github.com/ducktors/arecibo/compare/v2.1.1...v2.2.0) (2023-02-01)
+## [2.2.1](https://github.com/ducktors/arecibo/compare/v2.2.0...v2.2.1) (2023-02-09)
 
 
-### Features
+### Bug Fixes
 
-* update depencencies, add ci tools ([99125ff](https://github.com/ducktors/arecibo/commit/99125ff4370a0ceb1beafbef53b2e1e15b997731))
+* **deps:** bump @types/node from 16.18.11 to 18.11.19 ([69d1075](https://github.com/ducktors/arecibo/commit/69d1075a8e756a8bc917a3d79b5890b7114446ba))
 
 # [2.2.0](https://github.com/ducktors/arecibo/compare/v2.1.1...v2.2.0) (2023-02-01)
 

@@ -1,6 +1,12 @@
 <div align="center">
 
-![arecibo-logo-v1](https://user-images.githubusercontent.com/6388707/44850629-2441de80-ac5e-11e8-9508-10beca9d17ef.png)
+---
+
+![ARECIBO](https://user-images.githubusercontent.com/1620916/216600132-30d60aa1-59f7-4f47-8e23-8c14c02baf99.png)
+
+---
+
+![arecibo_telescope_sending_a_signal_into_the_space_during__b5c6335a-ae52-4f9d-9350-fd7953fb5013](https://user-images.githubusercontent.com/1620916/216599766-d30dacd3-1beb-4e11-a4f4-22e5b52fa57c.png)
 
 </div>
 
