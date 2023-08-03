@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/ducktors/arecibo/compare/v2.2.1...v2.2.2) (2023-08-03)
+
+
+### Bug Fixes
+
+* **deps:** bump word-wrap from 1.2.3 to 1.2.4 ([b10ea28](https://github.com/ducktors/arecibo/commit/b10ea286cfea7a1d5d0fa8be5da91d336e563740))
+
 ## [2.2.1](https://github.com/ducktors/arecibo/compare/v2.2.0...v2.2.1) (2023-02-09)
 
 
