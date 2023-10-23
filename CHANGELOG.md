@@ -1,3 +1,10 @@
+## [2.2.3](https://github.com/ducktors/arecibo/compare/v2.2.2...v2.2.3) (2023-10-23)
+
+
+### Bug Fixes
+
+* **node:** rollaback to node 16 ([0c2d28f](https://github.com/ducktors/arecibo/commit/0c2d28fc4745bb470bea98c09029b5ac01116c4b))
+
 ## [2.2.2](https://github.com/ducktors/arecibo/compare/v2.2.1...v2.2.2) (2023-08-03)
 
 
