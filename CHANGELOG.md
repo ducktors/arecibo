@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/ducktors/arecibo/compare/v2.2.3...v3.0.0) (2023-10-23)
+
+
+### Features
+
+* **node:** remove node16 support on pipeline and package.json ([23eb74c](https://github.com/ducktors/arecibo/commit/23eb74cb1f59166312b388b0d56731566f5fe7c8))
+
+
+### BREAKING CHANGES
+
+* **node:** Remove Node v16
+
 ## [2.2.3](https://github.com/ducktors/arecibo/compare/v2.2.2...v2.2.3) (2023-10-23)
 
 
