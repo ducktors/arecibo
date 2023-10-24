@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         name: Install Node
         with:
           node-version: 18
