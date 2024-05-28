@@ -25,7 +25,7 @@ jobs:
       - name: Check commit message
         uses: wagoid/commitlint-github-action@v6
         with:
-          configFile: commitlint.config.js
+          configFile: commitlint.config.cjs
           failOnWarnings: false
           helpURL: https://github.com/ducktors/turborepo-remote-cache#how-to-commit
 
