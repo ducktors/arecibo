@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/ducktors/arecibo/compare/v3.0.0...v3.0.1) (2024-07-31)
+
+
+### Bug Fixes
+
+* **deps:** bump braces from 3.0.2 to 3.0.3 in the npm_and_yarn group ([02b70e8](https://github.com/ducktors/arecibo/commit/02b70e8ab3bc10a95ed907950bc3eb4ffc29d829))
+
 # [3.0.0](https://github.com/ducktors/arecibo/compare/v2.2.3...v3.0.0) (2023-10-23)
 
 
