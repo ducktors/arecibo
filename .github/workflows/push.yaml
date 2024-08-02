@@ -48,3 +48,20 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install with npm
+        run: npm install
+      - name: Test
+        run: npm run test

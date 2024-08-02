@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "redhat.vscode-yaml",
+    "aaron-bond.better-comments"
+  ]
+}
