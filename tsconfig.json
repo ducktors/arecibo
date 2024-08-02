@@ -17,7 +17,7 @@
     "declaration": true,
     "lib": [
       "esnext"
-    ],
+    ]
   },
   "formatCodeOptions": {
     "identSize": 2,

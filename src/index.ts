@@ -1,12 +1,22 @@
-import type { FastifyPlugin, FastifyPluginOptions, LogLevel, RouteHandler } from 'fastify'
-import fp from 'fastify-plugin'
+import type {
+  FastifyPlugin,
+  FastifyPluginOptions,
+  LogLevel,
+  RouteHandler,
+} from 'fastify';
+import fp from 'fastify-plugin';
 
-import { readinessSchema, livenessSchema, startupSchema, healthzSchema } from './schema'
+import {
+  healthzSchema,
+  livenessSchema,
+  readinessSchema,
+  startupSchema,
+} from './schema.js';
 
-const HEALTHZ_URL = '/healthz'
-const READINESS_URL = '/arecibo/readiness'
-const LIVENESS_URL = '/arecibo/liveness'
-const STARTUP_URL = '/arecibo/startup'
+const HEALTHZ_URL = '/healthz';
+const READINESS_URL = '/arecibo/readiness';
+const LIVENESS_URL = '/arecibo/liveness';
+const STARTUP_URL = '/arecibo/startup';
 
 const defaultMessage = `
 00000010101010000000000
@@ -82,29 +92,29 @@ const defaultMessage = `
 00000100000000010000000
 00000001001010000000000
 01111001111101001111000
-`
+`;
 
 const defaultResponse =
   (message: string): RouteHandler =>
   (_, reply) => {
-    reply.type('text/html').send(message)
-  }
+    reply.type('text/html').send(message);
+  };
 
 interface Opts extends FastifyPluginOptions {
-  message?: string
-  probeType?: 'basic' | 'specific'
-  healthzURL?: string
-  readinessURL?: string
-  livenessURL?: string
-  startupURL?: string
-  healthzCallback?: RouteHandler
-  readinessCallback?: RouteHandler
-  livenessCallback?: RouteHandler
-  startupCallback?: RouteHandler
-  logLevel: LogLevel
+  message?: string;
+  probeType?: 'basic' | 'specific';
+  healthzURL?: string;
+  readinessURL?: string;
+  livenessURL?: string;
+  startupURL?: string;
+  healthzCallback?: RouteHandler;
+  readinessCallback?: RouteHandler;
+  livenessCallback?: RouteHandler;
+  startupCallback?: RouteHandler;
+  logLevel: LogLevel;
 }
 
-type Arecibo = FastifyPlugin<Opts> & { default: Arecibo }
+type Arecibo = FastifyPlugin<Opts> & { default: Arecibo };
 
 const arecibo: any = fp<Opts>(
   (fastify, opts, next) => {
@@ -116,28 +126,45 @@ const arecibo: any = fp<Opts>(
       livenessURL = LIVENESS_URL,
       startupURL = STARTUP_URL,
       logLevel = 'info',
-    } = opts
+    } = opts;
 
-    const healthzCallback = opts.healthzCallback || defaultResponse(message)
-    const readinessCallback = opts.readinessCallback || defaultResponse(message)
-    const livenessCallback = opts.livenessCallback || defaultResponse(message)
-    const startupCallback = opts.startupCallback || defaultResponse(message)
+    const healthzCallback = opts.healthzCallback || defaultResponse(message);
+    const readinessCallback =
+      opts.readinessCallback || defaultResponse(message);
+    const livenessCallback = opts.livenessCallback || defaultResponse(message);
+    const startupCallback = opts.startupCallback || defaultResponse(message);
 
     if (probeType === 'basic') {
-      fastify.get(healthzURL, { schema: healthzSchema, logLevel }, healthzCallback)
+      fastify.get(
+        healthzURL,
+        { schema: healthzSchema, logLevel },
+        healthzCallback,
+      );
     } else if (probeType === 'specific') {
-      fastify.get(readinessURL, { schema: readinessSchema, logLevel }, readinessCallback)
-      fastify.get(livenessURL, { schema: livenessSchema, logLevel }, livenessCallback)
-      fastify.get(startupURL, { schema: startupSchema, logLevel }, startupCallback)
+      fastify.get(
+        readinessURL,
+        { schema: readinessSchema, logLevel },
+        readinessCallback,
+      );
+      fastify.get(
+        livenessURL,
+        { schema: livenessSchema, logLevel },
+        livenessCallback,
+      );
+      fastify.get(
+        startupURL,
+        { schema: startupSchema, logLevel },
+        startupCallback,
+      );
     }
 
-    next()
+    next();
   },
   {
     name: 'arecibo',
     fastify: '^3.0.0 || ^4.0.0',
   },
-)
+);
 
-arecibo.default = arecibo
-export = arecibo as Arecibo
+arecibo.default = arecibo;
+export = arecibo as Arecibo;
