@@ -12,6 +12,7 @@
 
 <div align="center">
 
+[![CI](https://github.com/ducktors/arecibo/actions/workflows/ci.yaml/badge.svg)](https://github.com/ducktors/arecibo/actions/workflows/ci.yaml)
 [![NPM version](https://img.shields.io/npm/v/arecibo.svg?style=flat)](https://www.npmjs.com/package/arecibo)
 [![NPM downloads](https://img.shields.io/npm/dm/arecibo.svg?style=flat)](https://www.npmjs.com/package/arecibo)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -24,7 +25,7 @@ __Note: Arecibo version 1 supports version 2 of Fastify. Arecibo version 2 suppo
 
 | Arecibo version | Fastify version | Branch |
 | -- | -- | -- |
-| [v4](https://github.com/ducktors/arecibo/releases/tag/v4.0.0) | Fastify 3, 4, 5 | [master](https://github.com/ducktors/arecibo/tree/master) |
+| [v3](https://github.com/ducktors/arecibo/releases/tag/v3.1.0) | Fastify 3, 4, 5 | [master](https://github.com/ducktors/arecibo/tree/master) |
 | [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | deprecated | 
 
 
