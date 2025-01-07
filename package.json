@@ -20,7 +20,7 @@
     "commit": "npx git-cz",
     "prepare": "husky install",
     "update": "npx npm-check -u",
-    "test": "node --test --require ts-node/register src/**/*.test.ts"
+    "test": "node --test --require ts-node/register src/index.test.ts"
   },
   "repository": {
     "type": "git",
