@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/ducktors/arecibo/compare/v3.0.1...v3.1.0) (2025-01-07)
+
+
+### Features
+
+* add support to fastift 5 ([19b1f71](https://github.com/ducktors/arecibo/commit/19b1f71baf668f14f7928a18e006aebcf633ca0f))
+
 ## [3.0.1](https://github.com/ducktors/arecibo/compare/v3.0.0...v3.0.1) (2024-07-31)
 
 
