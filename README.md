@@ -24,7 +24,7 @@ __Note: Arecibo version 1 supports version 2 of Fastify. Arecibo version 2 suppo
 
 | Arecibo version | Fastify version | Branch |
 | -- | -- | -- |
-| [v2](https://github.com/ducktors/arecibo/releases/tag/v2.2.0) | Fastify 3 & 4 | [master](https://github.com/ducktors/arecibo/tree/master) |
+| [v4](https://github.com/ducktors/arecibo/releases/tag/v4.0.0) | Fastify 3, 4, 5 | [master](https://github.com/ducktors/arecibo/tree/master) |
 | [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | deprecated | 
 
 
