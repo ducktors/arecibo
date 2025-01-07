@@ -3,21 +3,21 @@ import assert from 'node:assert'
 import Fastify from 'fastify'
 import arecibo from './index'
 
-test('arecibo plugin', async (t) => {
+test('arecibo plugin', async t => {
   await t.test('registers routes correctly', async () => {
     const fastify = Fastify()
     await fastify.register(arecibo, {
-      logLevel: 'silent'
+      logLevel: 'silent',
     })
 
     const readinessResponse = await fastify.inject({
       method: 'GET',
-      url: '/arecibo/readiness'
+      url: '/arecibo/readiness',
     })
 
     const livenessResponse = await fastify.inject({
       method: 'GET',
-      url: '/arecibo/liveness'
+      url: '/arecibo/liveness',
     })
 
     assert.equal(readinessResponse.statusCode, 200)
@@ -31,17 +31,17 @@ test('arecibo plugin', async (t) => {
     await fastify.register(arecibo, {
       logLevel: 'silent',
       readinessURL: '/custom/readiness',
-      livenessURL: '/custom/liveness'
+      livenessURL: '/custom/liveness',
     })
 
     const readinessResponse = await fastify.inject({
       method: 'GET',
-      url: '/custom/readiness'
+      url: '/custom/readiness',
     })
 
     const livenessResponse = await fastify.inject({
       method: 'GET',
-      url: '/custom/liveness'
+      url: '/custom/liveness',
     })
 
     assert.equal(readinessResponse.statusCode, 200)
@@ -51,21 +51,21 @@ test('arecibo plugin', async (t) => {
   await t.test('accepts custom callbacks', async () => {
     const fastify = Fastify()
     const customMessage = 'Custom response'
-    
+
     await fastify.register(arecibo, {
       logLevel: 'silent',
       readinessCallback: (_, reply) => reply.send(customMessage),
-      livenessCallback: (_, reply) => reply.send(customMessage)
+      livenessCallback: (_, reply) => reply.send(customMessage),
     })
 
     const readinessResponse = await fastify.inject({
       method: 'GET',
-      url: '/arecibo/readiness'
+      url: '/arecibo/readiness',
     })
 
     const livenessResponse = await fastify.inject({
       method: 'GET',
-      url: '/arecibo/liveness'
+      url: '/arecibo/liveness',
     })
 
     assert.equal(readinessResponse.statusCode, 200)
@@ -73,4 +73,4 @@ test('arecibo plugin', async (t) => {
     assert.equal(readinessResponse.payload, customMessage)
     assert.equal(livenessResponse.payload, customMessage)
   })
-}) 
+})
