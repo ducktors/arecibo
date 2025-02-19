@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/ducktors/arecibo/compare/v3.1.0...v3.1.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* remove preinstall script ([392b07f](https://github.com/ducktors/arecibo/commit/392b07f3c0cd77a63c5718368313a4096d7d78d0))
+
 # [3.1.0](https://github.com/ducktors/arecibo/compare/v3.0.1...v3.1.0) (2025-01-07)
 
 
