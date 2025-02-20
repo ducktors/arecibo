@@ -1,6 +1,6 @@
 {
   "name": "arecibo",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Fastify plugin that respondes to Kubernetes readiness and liveness probes.",
   "main": "./lib",
   "types": "./lib/index.d.ts",
@@ -65,7 +65,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   },
-  "files": ["/lib"],
+  "files": [
+    "/lib"
+  ],
   "dependencies": {
     "fastify-plugin": "^5.0.1"
   },

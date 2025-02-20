@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/ducktors/arecibo/compare/v4.0.0...v4.0.1) (2025-02-20)
+
+
+### Bug Fixes
+
+* improve code on index.ts and update biome ([2267524](https://github.com/ducktors/arecibo/commit/22675245f6e1f2c61687a31188a3d8e48f0b721f))
+
 # [4.0.0](https://github.com/ducktors/arecibo/compare/v3.1.1...v4.0.0) (2025-02-20)
 
 
