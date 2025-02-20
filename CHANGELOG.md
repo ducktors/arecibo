@@ -1,3 +1,15 @@
+# [4.0.0](https://github.com/ducktors/arecibo/compare/v3.1.1...v4.0.0) (2025-02-20)
+
+
+### Code Refactoring
+
+* remove support to fastify 3 and eslint ([1551e25](https://github.com/ducktors/arecibo/commit/1551e259ff677ed49a6580832819aaf5321d0079))
+
+
+### BREAKING CHANGES
+
+* Remove support to Fastify 3
+
 ## [3.1.1](https://github.com/ducktors/arecibo/compare/v3.1.0...v3.1.1) (2025-02-19)
 
 
