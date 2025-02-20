@@ -8,7 +8,7 @@ export const healthzSchema = {
       type: 'string',
     },
   },
-};
+}
 
 export const readinessSchema = {
   description:
@@ -21,11 +21,10 @@ export const readinessSchema = {
       type: 'string',
     },
   },
-};
+}
 
 export const livenessSchema = {
-  description:
-    'The kubelet uses liveness probes to know when to restart a Container',
+  description: 'The kubelet uses liveness probes to know when to restart a Container',
   tags: ['arecibo'],
   summary: 'Liveness Probe route',
   response: {
@@ -34,11 +33,10 @@ export const livenessSchema = {
       type: 'string',
     },
   },
-};
+}
 
 export const startupSchema = {
-  description:
-    'The kubelet uses startup probes to know when a Container application has started',
+  description: 'The kubelet uses startup probes to know when a Container application has started',
   tags: ['arecibo'],
   summary: 'Startup Probe route',
   response: {
@@ -47,4 +45,4 @@ export const startupSchema = {
       type: 'string',
     },
   },
-};
+}
