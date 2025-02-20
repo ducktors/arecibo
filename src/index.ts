@@ -9,16 +9,14 @@ import fp from 'fastify-plugin'
 import { readinessSchema, livenessSchema } from './schema'
 import { areciboMessage } from './arecibo-message'
 
-const READINESS_URL = '/arecibo/readiness'
-const LIVENESS_URL = '/arecibo/liveness'
+const ROUTES = {
+  READINESS: '/arecibo/readiness',
+  LIVENESS: '/arecibo/liveness',
+} as const
 
-const defaultMessage = areciboMessage
-
-const defaultResponse =
-  (message: string): RouteHandler =>
-  (_, reply) => {
-    reply.type('text/html').send(message)
-  }
+function createResponseHandler(message: string): RouteHandler {
+  return (_, reply) => reply.type('text/html').send(message)
+}
 
 interface Opts extends FastifyPluginOptions {
   message?: string
@@ -32,25 +30,21 @@ interface Opts extends FastifyPluginOptions {
 const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
   (fastify, opts, next) => {
     const {
-      message = defaultMessage,
-      readinessURL = READINESS_URL,
-      livenessURL = LIVENESS_URL,
+      message = areciboMessage,
+      readinessURL = ROUTES.READINESS,
+      livenessURL = ROUTES.LIVENESS,
+      readinessCallback = createResponseHandler(message),
+      livenessCallback = createResponseHandler(message),
       logLevel = 'info',
     } = opts
 
-    const readinessCallback = opts.readinessCallback || defaultResponse(message)
-    const livenessCallback = opts.livenessCallback || defaultResponse(message)
-
-    fastify.get(
-      readinessURL,
-      { schema: readinessSchema, logLevel },
-      readinessCallback,
-    )
-    fastify.get(
-      livenessURL,
-      { schema: livenessSchema, logLevel },
-      livenessCallback,
-    )
+    fastify
+      .get(
+        readinessURL,
+        { schema: readinessSchema, logLevel },
+        readinessCallback,
+      )
+      .get(livenessURL, { schema: livenessSchema, logLevel }, livenessCallback)
 
     next()
   },
