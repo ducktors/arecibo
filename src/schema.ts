@@ -1,5 +1,6 @@
 export const readinessSchema = {
-  description: 'The kubelet uses liveness probes to know when to restart a Container',
+  description:
+    'The kubelet uses liveness probes to know when to restart a Container',
   tags: ['arecibo'],
   summary: 'Readiness Probe route',
   response: {

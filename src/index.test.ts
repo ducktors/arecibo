@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import Fastify from 'fastify'
 import arecibo from './index'
 
-test('arecibo plugin', async t => {
+test('arecibo plugin', async (t) => {
   await t.test('registers routes correctly', async () => {
     const fastify = Fastify()
     await fastify.register(arecibo, {

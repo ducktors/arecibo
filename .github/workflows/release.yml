@@ -9,6 +9,8 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 env:
   NPM_CONFIG_PROVENANCE: true
+  PNPM_VERSION: 10.4.1
+  NODE_VERSION: 20
 
 jobs:
   release:
@@ -26,13 +28,18 @@ jobs:
       - uses: actions/setup-node@v4
         name: Install Node
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        name: Install pnpm
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
@@ -41,4 +48,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DUCKTORS_PAT }}
           NPM_TOKEN: ${{ secrets.DUCKTORS_NPM_TOKEN }}
-        run: npm run semantic-release
+        run: pnpm semantic-release

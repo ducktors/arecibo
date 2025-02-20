@@ -15,20 +15,12 @@
     "removeComments": true,
     "noUnusedLocals": true,
     "declaration": true,
-    "lib": [
-      "esnext"
-    ],
+    "lib": ["esnext"]
   },
   "formatCodeOptions": {
     "identSize": 2,
     "tabSize": 2
   },
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-    "lib"
-  ],
-  "include": [
-    "**/*.ts"
-  ]
+  "exclude": ["node_modules", "**/*.spec.ts", "lib"],
+  "include": ["**/*.ts"]
 }
