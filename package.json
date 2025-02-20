@@ -1,6 +1,6 @@
 {
   "name": "arecibo",
-  "version": "3.0.1",
+  "version": "3.1.1",
   "description": "Fastify plugin that respondes to kubernetes readiness and liveness probes.",
   "main": "./lib",
   "types": "./lib/index.d.ts",
@@ -9,17 +9,17 @@
     "clean-build": "rimraf ./lib && mkdir lib",
     "prebuild": "npm-run-all clean-build lint type-check",
     "build": "tsc -p ./tsconfig.json",
-    "preinstall": "npx only-allow npm",
-    "lint": "biome check . ",
-    "lint:fix": "biome check --write . ",
+    "prettier": "prettier --log-level warn --write \"src/**/*.{ts,tsx}\"",
+    "prelint": "npm run prettier",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
     "prepublishOnly": "npm run build",
     "commitlint": "commitlint",
     "semantic-release": "semantic-release",
     "commit": "npx git-cz",
-    "prepare": "husky",
-    "update": "npx npm-check -u --specials",
-    "test": "vitest run",
-    "test:watch": "vitest watch"
+    "prepare": "husky install",
+    "update": "npx npm-check -u",
+    "test": "node --test --require ts-node/register src/index.test.ts"
   },
   "repository": {
     "type": "git",
@@ -36,43 +36,46 @@
     "monitoring",
     "kubernetes-monitoring"
   ],
-  "author": "Ducktors",
+  "author": "kubernetes-monitoring",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ducktors/arecibo/issues"
   },
   "homepage": "https://github.com/ducktors/arecibo#readme",
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
-    "@commitlint/cli": "^19.3.0",
-    "@commitlint/config-conventional": "^19.2.2",
-    "@commitlint/lint": "^19.2.2",
-    "@commitlint/prompt": "^19.3.1",
-    "@fastify/type-provider-typebox": "^4.0.0",
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@commitlint/lint": "^19.7.1",
+    "@commitlint/prompt": "^19.7.1",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^10.0.5",
+    "@semantic-release/github": "^11.0.1",
     "@semantic-release/npm": "^12.0.1",
-    "@semantic-release/release-notes-generator": "^14.0.1",
-    "@types/node": "^22.0.3",
-    "commitizen": "^4.3.0",
+    "@semantic-release/release-notes-generator": "^14.0.3",
+    "@types/node": "^22.10.5",
+    "commitizen": "^4.3.1",
     "commitlint-config-cz": "^0.13.3",
-    "commitlint-plugin-function-rules": "^4.0.0",
+    "commitlint-plugin-function-rules": "^4.0.1",
     "cz-conventional-changelog": "^3.3.0",
-    "fastify": "^4.15.0",
-    "husky": "^9.1.4",
+    "fastify": "^5.2.1",
+    "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
+    "prettier": "^3.5.1",
     "rimraf": "^6.0.1",
-    "semantic-release": "^24.0.0",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "semantic-release": "^24.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "typescript": "^5.4.2",
+    "ts-node": "^10.9.2"
   },
   "files": [
     "/lib"
   ],
   "dependencies": {
-    "fastify-plugin": "^4.5.1"
+    "fastify-plugin": "^5.0.1"
   },
   "engines": {
     "node": ">=20.0.0"

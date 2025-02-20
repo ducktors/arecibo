@@ -13,6 +13,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
   
+
 jobs:
   commitlint:
     name: Commit
@@ -35,7 +36,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
@@ -54,7 +55,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
