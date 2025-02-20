@@ -1,182 +1,21 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.8.1/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "formatter": {
-    "ignore": [
-      ".vscode",
-      "lib/**"
-    ],
-    "enabled": true,
-    "formatWithErrors": false,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineEnding": "lf",
-    "lineWidth": 80,
-    "attributePosition": "auto"
-  },
+  "$schema": "https://biomejs.dev/schemas/1.1.2/schema.json",
   "organizeImports": {
-    "ignore": [
-      ".vscode",
-      "lib/**"
-    ],
     "enabled": true
   },
   "linter": {
-    "ignore": [
-      ".vscode",
-      "lib/**"
-    ],
     "enabled": true,
     "rules": {
-      "recommended": true,
-      "complexity": {
-        "noBannedTypes": "error",
-        "noUselessThisAlias": "error",
-        "noUselessTypeConstraint": "error",
-        "useLiteralKeys": "off",
-        "noForEach": "off",
-        "useOptionalChain": "off",
-        "noUselessTernary": "off",
-        "useArrowFunction": "off"
-      },
-      "correctness": {
-        "noPrecisionLoss": "error",
-        "noUnusedImports": "error",
-        "noUnusedVariables": "off",
-        "noConstAssign": "off",
-        "noGlobalObjectCalls": "off",
-        "noInvalidConstructorSuper": "off",
-        "noNewSymbol": "off",
-        "noSetterReturn": "off",
-        "noUndeclaredVariables": "off",
-        "noUnreachable": "off",
-        "noUnreachableSuper": "off",
-        "noUnnecessaryContinue": "off"
-      },
-      "performance": {
-        "noDelete": "off",
-        "noAccumulatingSpread": "off"
-      },
-      "style": {
-        "noDefaultExport": "error",
-        "noNamespace": "error",
-        "useAsConstAssertion": "error",
-        "noArguments": "error",
-        "noVar": "error",
-        "useConst": "error",
-        "noInferrableTypes": "off",
-        "noNonNullAssertion": "off",
-        "useBlockStatements": "off",
-        "useImportType": "off",
-        "useTemplate": "off",
-        "noUnusedTemplateLiteral": "off",
-        "useNodejsImportProtocol": "off",
-        "useNumberNamespace": "off"
-      },
-      "suspicious": {
-        "noExtraNonNullAssertion": "error",
-        "noMisleadingInstantiator": "error",
-        "noUnsafeDeclarationMerging": "error",
-        "noExplicitAny": "off",
-        "noImplicitAnyLet": "off",
-        "noDuplicateClassMembers": "off",
-        "noDuplicateObjectKeys": "off",
-        "noDuplicateParameters": "off",
-        "noFunctionAssign": "off",
-        "noImportAssign": "off",
-        "noRedeclare": "off",
-        "noUnsafeNegation": "off",
-        "useGetterReturn": "off",
-        "noGlobalIsNan": "off"
-      },
-      "nursery": {
-        "useImportExtensions": {
-          "level": "error",
-          "fix": "none"
-        }
-      }
+      "recommended": true
     }
+  },
+  "formatter": {
+    "indentStyle": "space"
   },
   "javascript": {
     "formatter": {
-      "jsxQuoteStyle": "double",
-      "quoteProperties": "asNeeded",
-      "trailingCommas": "all",
-      "semicolons": "always",
-      "arrowParentheses": "always",
-      "bracketSpacing": true,
-      "bracketSameLine": false,
-      "quoteStyle": "single",
-      "attributePosition": "auto"
+      "semicolons": "asNeeded",
+      "quoteStyle": "single"
     }
-  },
-  "css": {
-    "formatter": {
-      "enabled": true
-    }
-  },
-  "overrides": [
-    {
-      "include": [
-        "src/**"
-      ],
-      "linter": {
-        "rules": {
-          "performance": {
-            "noBarrelFile": "off"
-          },
-          "complexity": {
-            "noStaticOnlyClass": "off",
-            "noExtraBooleanCast": "off",
-            "useRegexLiterals": "off"
-          },
-          "correctness": {
-            "noSwitchDeclarations": "off",
-            "noUnsafeOptionalChaining": "off",
-            "noSelfAssign": "off",
-            "noVoidTypeReturn": "off",
-            "noEmptyPattern": "off"
-          },
-          "style": {
-            "noUselessElse": "off",
-            "noParameterAssign": "off",
-            "useDefaultParameterLast": "off",
-            "noCommaOperator": "off"
-          },
-          "suspicious": {
-            "noAssignInExpressions": "off",
-            "noDoubleEquals": "off",
-            "noThenProperty": "off",
-            "noDuplicateCase": "off",
-            "noSelfCompare": "off"
-          }
-        }
-      }
-    },
-    {
-      "include": [
-        "*.json"
-      ],
-      "json": {
-        "formatter": {
-          "lineWidth": 2
-        }
-      }
-    },
-    {
-      "include": [
-        "*.yaml",
-        "*.yml"
-      ],
-      "javascript": {
-        "formatter": {
-          "quoteStyle": "double"
-        }
-      }
-    }
-  ]
+  }
 }

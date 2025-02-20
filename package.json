@@ -1,7 +1,7 @@
 {
   "name": "arecibo",
   "version": "3.1.1",
-  "description": "Fastify plugin that respondes to kubernetes readiness and liveness probes.",
+  "description": "Fastify plugin that respondes to Kubernetes startup,readiness and liveness probes.",
   "main": "./lib",
   "types": "./lib/index.d.ts",
   "scripts": {
@@ -11,15 +11,16 @@
     "build": "tsc -p ./tsconfig.json",
     "prettier": "prettier --log-level warn --write \"src/**/*.{ts,tsx}\"",
     "prelint": "npm run prettier",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome check --apply .",
     "prepublishOnly": "npm run build",
     "commitlint": "commitlint",
     "semantic-release": "semantic-release",
     "commit": "npx git-cz",
     "prepare": "husky install",
     "update": "npx npm-check -u",
-    "test": "node --test --require ts-node/register src/index.test.ts"
+    "test": "node --test --require ts-node/register **/*.test.ts"
   },
   "repository": {
     "type": "git",
@@ -53,7 +54,7 @@
     "@semantic-release/github": "^11.0.1",
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^14.0.3",
-    "@types/node": "^22.10.5",
+    "@types/node": "^22.13.4",
     "commitizen": "^4.3.1",
     "commitlint-config-cz": "^0.13.3",
     "commitlint-plugin-function-rules": "^4.0.1",
@@ -64,12 +65,9 @@
     "prettier": "^3.5.1",
     "rimraf": "^6.0.1",
     "semantic-release": "^24.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.19.1",
-    "@typescript-eslint/parser": "^8.19.1",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "typescript": "^5.4.2",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "@biomejs/biome": "1.5.3"
   },
   "files": [
     "/lib"
