@@ -1,3 +1,10 @@
+## [4.0.2](https://github.com/ducktors/arecibo/compare/v4.0.1...v4.0.2) (2025-04-22)
+
+
+### Bug Fixes
+
+* **deps:** bump fastify from 5.2.1 to 5.3.1 in the npm_and_yarn group ([281ed5a](https://github.com/ducktors/arecibo/commit/281ed5a538981107305813c3608d44062f0952bc))
+
 ## [4.0.1](https://github.com/ducktors/arecibo/compare/v4.0.0...v4.0.1) (2025-02-20)
 
 
