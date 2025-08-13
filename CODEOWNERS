@@ -1,0 +1,12 @@
+# Dependabot reviewers (migrated from .github/dependabot.yml)
+/action.yaml @matteovivona
+/action.yml @matteovivona
+/npm-shrinkwrap.json @matteovivona
+/package-lock.json @matteovivona
+/package.json @matteovivona
+/pnpm-lock.yaml @matteovivona
+/yarn.lock @matteovivona
+/.github/workflows/*.yaml @matteovivona
+/.github/workflows/*.yml @matteovivona
+/**/.github/workflows/*.yaml @matteovivona
+/**/.github/workflows/*.yml @matteovivona
