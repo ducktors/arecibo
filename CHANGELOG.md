@@ -1,3 +1,10 @@
+## [4.0.4](https://github.com/ducktors/arecibo/compare/v4.0.3...v4.0.4) (2025-08-13)
+
+
+### Bug Fixes
+
+* **deps:** bump brace-expansion in the npm_and_yarn group ([4fa745e](https://github.com/ducktors/arecibo/commit/4fa745e18f920cec872b060be4bbf3dd57299006))
+
 ## [4.0.3](https://github.com/ducktors/arecibo/compare/v4.0.2...v4.0.3) (2025-06-04)
 
 
