@@ -21,6 +21,7 @@ jobs:
     name: Release
     permissions:
       contents: write
+      attestations: write
       id-token: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -49,11 +50,15 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018 # v2.1.0
+        with:
+          subject-path: "lib/**"
+
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
 
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.DUCKTORS_PAT }}
-          NPM_TOKEN: ${{ secrets.DUCKTORS_NPM_TOKEN }}
         run: pnpm semantic-release
