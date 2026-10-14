@@ -5,6 +5,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+      semver-minor-days: 3
+      semver-patch-days: 3
     commit-message:
       prefix: "fix(deps)"
     assignees:
@@ -16,10 +21,14 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+      semver-minor-days: 3
+      semver-patch-days: 3
     commit-message:
       prefix: "chore(deps)"
     assignees:
       - "matteovivona"
     reviewers:
       - "matteovivona"
-  
