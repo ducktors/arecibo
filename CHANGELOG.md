@@ -1,3 +1,27 @@
+## [5.0.1](https://github.com/ducktors/arecibo/compare/v5.0.0...v5.0.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** bump diff ([2c55115](https://github.com/ducktors/arecibo/commit/2c5511583fe9c09d1867582cab0dc906b3a43da4))
+
+# [5.0.0](https://github.com/ducktors/arecibo/compare/v4.0.4...v5.0.0) (2026-11-27)
+
+
+* feat!: require Node.js 22 or later ([a25ba63](https://github.com/ducktors/arecibo/commit/a25ba63e4d4ab46a04a99cdc9edc1ffafed449c5))
+
+
+### Bug Fixes
+
+* **deps:** bump js-yaml in the npm_and_yarn group across 1 directory ([89fb4fe](https://github.com/ducktors/arecibo/commit/89fb4fe697e9625582b148e6f23c308b39186692))
+
+
+### BREAKING CHANGES
+
+* arecibo no longer supports Node.js 20.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
 ## [4.0.4](https://github.com/ducktors/arecibo/compare/v4.0.3...v4.0.4) (2025-08-13)
 
 
