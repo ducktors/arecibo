@@ -56,7 +56,7 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
   },
   {
     name: 'arecibo',
-    fastify: '^4.0.0 || ^5.0.0',
+    fastify: '^4.0.0 || ^5.0.0 || ^6.0.0',
   },
 )
 
