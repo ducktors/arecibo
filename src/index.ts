@@ -107,6 +107,16 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    // A value that is not a function would count as a check that passed.
+    const invalid = Object.entries(readinessChecks ?? {}).find(
+      ([, check]) => typeof check !== 'function',
+    )
+    if (invalid) {
+      return next(
+        new Error(`The readiness check "${invalid[0]}" is not a function`),
+      )
+    }
+
     fastify
       .get(
         readinessURL,

@@ -310,6 +310,14 @@ test('readinessChecks', async (t) => {
     }, /Use readinessChecks or readinessCallback, not both/)
   })
 
+  await t.test('rejects a check that is not a function', async () => {
+    await assert.rejects(async () => {
+      await Fastify().register(arecibo, {
+        readinessChecks: { ok: () => true, database: true as never },
+      })
+    }, /The readiness check "database" is not a function/)
+  })
+
   await t.test('adds the 503 schema only with readinessChecks', async () => {
     for (const [options, expected] of [
       [{}, false],
