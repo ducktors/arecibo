@@ -40,7 +40,7 @@ fastify.register(arecibo, { logLevel: 'warn' })
 fastify.listen({ port: 3000, host: '0.0.0.0' })
 ```
 
-The plugin adds `GET /arecibo/readiness` and `GET /arecibo/liveness`. By default, each route replies with status 200 and the Arecibo message. For the probe settings, refer to [Kubernetes deployment manifest](#kubernetes-deployment-manifest).
+The plugin adds `GET /arecibo/readiness` and `GET /arecibo/liveness`. By default, each route replies with status 200 and the Arecibo message. For the probe settings, refer to [Kubernetes probes](#kubernetes-probes).
 
 ## Options
 
@@ -122,54 +122,35 @@ import arecibo from 'arecibo'
 
 This import needs `esModuleInterop`, `allowSyntheticDefaultImports`, or `"module": "nodenext"`. For CommonJS output without these settings, use `import arecibo = require('arecibo')`. Do not use `import * as arecibo from 'arecibo'`. With `esModuleInterop` or `nodenext`, `register` does not accept that value.
 
-## Kubernetes deployment manifest
+## Kubernetes probes
+
+Add these fields to the container in your Kubernetes manifest:
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: my-app
-spec:
-  selector:
-    matchLabels:
-      app: my-app
-  template:
-    metadata:
-      labels:
-        app: my-app
-    spec:
-      terminationGracePeriodSeconds: 30
-      containers:
-        - name: my-app
-          image: my-app:1.0.0
-          ports:
-            - name: http
-              containerPort: 3000
-          startupProbe:
-            httpGet:
-              path: /arecibo/liveness
-              port: http
-            periodSeconds: 5
-            failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /arecibo/liveness
-              port: http
-            periodSeconds: 15
-          readinessProbe:
-            httpGet:
-              path: /arecibo/readiness
-              port: http
-            periodSeconds: 5
-          lifecycle:
-            preStop:
-              sleep:
-                seconds: 5
+ports:
+  - name: http
+    containerPort: 3000
+startupProbe:
+  httpGet:
+    path: /arecibo/liveness
+    port: http
+  periodSeconds: 5
+  failureThreshold: 30
+livenessProbe:
+  httpGet:
+    path: /arecibo/liveness
+    port: http
+  periodSeconds: 15
+readinessProbe:
+  httpGet:
+    path: /arecibo/readiness
+    port: http
+  periodSeconds: 5
 ```
 
 - The `startupProbe` uses the liveness URL. In this example, the application has 150 seconds (30 x 5) to start. Kubernetes does not run the other probes until the startup probe succeeds.
-- The `preStop` hook delays the `SIGTERM` signal. This gives the cluster time to stop new traffic to the Pod. Call `fastify.close()` when your process receives `SIGTERM`.
-- `terminationGracePeriodSeconds` must be longer than the `preStop` delay plus the shutdown time of your application.
+- To give the cluster time to stop new traffic to the Pod, add a `preStop` hook to the container, for example `lifecycle.preStop.sleep.seconds: 5`. Call `fastify.close()` when your process receives `SIGTERM`.
+- Set `terminationGracePeriodSeconds` of the Pod to a value longer than the `preStop` delay plus the shutdown time of your application.
 - Kubernetes enables the `sleep` action by default from version 1.30. The action is stable from version 1.34. For an older cluster, use an `exec` hook that runs `sleep`.
 
 ## How to commit
