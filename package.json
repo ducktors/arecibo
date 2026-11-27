@@ -10,12 +10,12 @@
     "prebuild": "npm-run-all clean-build format type-check",
     "build": "tsc -p ./tsconfig.json",
     "format": "biome format --write .",
-    "check": "biome check --apply .",
+    "check": "biome check --write .",
     "prepublishOnly": "npm run build",
     "commitlint": "commitlint",
     "semantic-release": "semantic-release",
     "commit": "npx git-cz",
-    "prepare": "husky install",
+    "prepare": "husky",
     "update": "npx npm-check -u",
     "test": "node --test --require ts-node/register src/index.test.ts"
   },
@@ -34,7 +34,7 @@
     "monitoring",
     "kubernetes-monitoring"
   ],
-  "author": "kubernetes-monitoring",
+  "author": "Ducktors (https://ducktors.dev)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ducktors/arecibo/issues"

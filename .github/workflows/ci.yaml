@@ -39,7 +39,7 @@ jobs:
         with:
           configFile: commitlint.config.cjs
           failOnWarnings: false
-          helpURL: https://github.com/ducktors/turborepo-remote-cache#how-to-commit
+          helpURL: https://github.com/ducktors/arecibo#how-to-commit
 
   build:
     runs-on: ubuntu-latest
