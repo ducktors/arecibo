@@ -55,6 +55,29 @@ fastify.register(arecibo, {
 })
 
 ```
+### Readiness checks
+
+Use `readinessChecks` to let the plugin check your dependencies on each readiness request.
+
+```javascript
+fastify.register(arecibo, {
+  readinessChecks: {
+    database: () => db.query('SELECT 1'),
+    queue: () => queue.isConnected(), // false means that the check failed
+  },
+  checkTimeout: 500, // optional, in milliseconds, defaults to 500
+})
+```
+
+- The checks run in parallel.
+- A check fails if it throws, rejects, returns or resolves to `false`, or does not settle in `checkTimeout` milliseconds.
+- The timeout does not stop the work of a check. A check that blocks the event loop also blocks the timeout.
+- If all checks pass, the route replies with status 200 and `message`.
+- If a check fails, the route replies with status 503 and the body `Service Unavailable`. The plugin logs the name and the error with `request.log.error`. The `logLevel` option `'silent'` hides this log.
+- Do not use `readinessChecks` together with `readinessCallback`. The registration fails.
+- Set `timeoutSeconds` of the Kubernetes readiness probe to a value larger than `checkTimeout`.
+- The checks do not change the liveness route.
+
 ### Note for TypeScript users
 
 If you set `"esModuleInterop": true` you must import this module using `import arecibo from 'arecibo'`.

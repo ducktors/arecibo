@@ -6,7 +6,11 @@ import type {
 } from 'fastify'
 import fp from 'fastify-plugin'
 
-import { readinessSchema, livenessSchema } from './schema'
+import {
+  readinessSchema,
+  readinessChecksSchema,
+  livenessSchema,
+} from './schema'
 import { areciboMessage } from './arecibo-message'
 
 const ROUTES = {
@@ -18,6 +22,51 @@ function createResponseHandler(message: string): RouteHandler {
   return (_, reply) => reply.type('text/html').send(message)
 }
 
+function createChecksHandler(
+  checks: NonNullable<arecibo.AreciboOptions['readinessChecks']>,
+  timeout: number,
+  message: string,
+): RouteHandler {
+  return async (request, reply) => {
+    const results = await Promise.all(
+      Object.entries(checks).map(async ([name, check]) => {
+        let timer: NodeJS.Timeout | undefined
+        try {
+          // `race` also handles a rejection that occurs after the timeout.
+          const result = await Promise.race([
+            // `then` changes a synchronous error into a rejection.
+            Promise.resolve().then(check),
+            new Promise((_, reject) => {
+              timer = setTimeout(
+                reject,
+                timeout,
+                new Error(`The check did not settle in ${timeout} ms`),
+              ).unref()
+            }),
+          ])
+          if (result === false) {
+            throw new Error('The check returned false')
+          }
+          return true
+        } catch (error) {
+          request.log.error(
+            { err: error, check: name },
+            'A readiness check failed',
+          )
+          return false
+        } finally {
+          clearTimeout(timer)
+        }
+      }),
+    )
+
+    reply.type('text/html')
+    return results.includes(false)
+      ? reply.code(503).send('Service Unavailable')
+      : reply.send(message)
+  }
+}
+
 // A namespace that contains only types merges with the `arecibo` constant.
 // Thus consumers can import the type, and `export =` stays the same.
 declare namespace arecibo {
@@ -26,6 +75,10 @@ declare namespace arecibo {
     readinessURL?: string
     livenessURL?: string
     readinessCallback?: RouteHandler
+    // Do not use together with `readinessCallback`.
+    readinessChecks?: Record<string, () => unknown | Promise<unknown>>
+    // The time limit of each readiness check, in milliseconds.
+    checkTimeout?: number
     livenessCallback?: RouteHandler
     logLevel?: LogLevel
   }
@@ -39,15 +92,28 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       message = areciboMessage,
       readinessURL = ROUTES.READINESS,
       livenessURL = ROUTES.LIVENESS,
-      readinessCallback = createResponseHandler(message),
+      readinessChecks,
+      checkTimeout = 500,
+      readinessCallback = readinessChecks
+        ? createChecksHandler(readinessChecks, checkTimeout, message)
+        : createResponseHandler(message),
       livenessCallback = createResponseHandler(message),
       logLevel = 'info',
     } = opts
 
+    if (readinessChecks && opts.readinessCallback) {
+      return next(
+        new Error('Use readinessChecks or readinessCallback, not both'),
+      )
+    }
+
     fastify
       .get(
         readinessURL,
-        { schema: readinessSchema, logLevel },
+        {
+          schema: readinessChecks ? readinessChecksSchema : readinessSchema,
+          logLevel,
+        },
         readinessCallback,
       )
       .get(livenessURL, { schema: livenessSchema, logLevel }, livenessCallback)
