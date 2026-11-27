@@ -1,3 +1,16 @@
+# [5.1.0](https://github.com/ducktors/arecibo/compare/v5.0.2...v5.1.0) (2026-11-27)
+
+
+### Bug Fixes
+
+* accept only a plain object with checks as readinessChecks ([119f7ad](https://github.com/ducktors/arecibo/commit/119f7ad29d31363d909040ae47f12186ce9825fa))
+* reject a readiness check that is not a function ([b9c89d1](https://github.com/ducktors/arecibo/commit/b9c89d132732c49762bdd1491aff8566d3896469))
+
+
+### Features
+
+* add the readinessChecks option ([64aecaa](https://github.com/ducktors/arecibo/commit/64aecaa0174571eec38765f5fbe89f052762362e))
+
 ## [5.0.2](https://github.com/ducktors/arecibo/compare/v5.0.1...v5.0.2) (2026-11-27)
 
 
