@@ -125,6 +125,17 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    // `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms. Then all
+    // slow checks fail. A numeric string or a fraction is a correct delay.
+    if (
+      readinessChecks &&
+      !(Number(checkTimeout) >= 1 && Number(checkTimeout) <= 2147483647)
+    ) {
+      return next(
+        new Error('checkTimeout must be a number from 1 to 2147483647'),
+      )
+    }
+
     // A value that is not a function would count as a check that passed.
     const invalid = Object.entries(readinessChecks ?? {}).find(
       ([, check]) => typeof check !== 'function',
