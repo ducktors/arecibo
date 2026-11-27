@@ -20,6 +20,8 @@
 
 </div>
 
+Arecibo is a Fastify plugin that adds two routes for the Kubernetes probes: `/arecibo/readiness` and `/arecibo/liveness`. By default, each route replies with status 200. To tell Kubernetes that the application is not ready, add [readiness checks](#readiness-checks) or a [custom callback](#custom-callbacks).
+
 ## Quick start
 
 This section also gives AI coding agents the data that they need to add Arecibo to a Fastify application.

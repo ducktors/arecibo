@@ -1,7 +1,7 @@
 {
   "name": "arecibo",
   "version": "5.1.1",
-  "description": "Fastify plugin that respondes to Kubernetes readiness and liveness probes.",
+  "description": "Fastify plugin that adds two routes for the Kubernetes readiness and liveness probes.",
   "main": "./lib",
   "types": "./lib/index.d.ts",
   "scripts": {
