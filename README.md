@@ -20,6 +20,60 @@
 
 </div>
 
+## Quick start for LLMs
+
+This section is for AI coding agents. It contains the data that you need to add Arecibo to a Fastify application.
+
+Requirements: Node.js 22 or later, and Fastify 4 or 5.
+
+```bash
+npm install arecibo
+```
+
+Register the plugin (`server.js`):
+
+```javascript
+const fastify = require('fastify')()
+const arecibo = require('arecibo')
+
+fastify.register(arecibo)
+
+fastify.listen({ port: 3000, host: '0.0.0.0' })
+```
+
+The plugin adds `GET /arecibo/readiness` and `GET /arecibo/liveness`. By default, each route replies with status 200.
+
+Add these fields to the container in your Kubernetes manifest:
+
+```yaml
+ports:
+  - name: http
+    containerPort: 3000
+startupProbe:
+  httpGet:
+    path: /arecibo/liveness
+    port: http
+  periodSeconds: 5
+  failureThreshold: 30
+livenessProbe:
+  httpGet:
+    path: /arecibo/liveness
+    port: http
+  periodSeconds: 15
+readinessProbe:
+  httpGet:
+    path: /arecibo/readiness
+    port: http
+  periodSeconds: 5
+```
+
+Rules:
+
+- To change the paths, use the `readinessURL` and `livenessURL` options. The plugin ignores `prefix`. Use the same paths in the manifest.
+- Do not check external dependencies in `livenessCallback`. Check them in `readinessCallback`, and reply with status 503 when the application is not ready.
+- Make global hooks, for example authentication, skip the probe URLs.
+- In TypeScript, use `import arecibo from 'arecibo'` (with `esModuleInterop`, `allowSyntheticDefaultImports`, or `"module": "nodenext"`). For CommonJS output without these settings, use `import arecibo = require('arecibo')`. Do not use `import * as arecibo`.
+
 ## Installation
 __Note: Please refer to the table below to find the correct version of Arecibo for your Fastify version.__
 
