@@ -1,3 +1,13 @@
+## [5.0.2](https://github.com/ducktors/arecibo/compare/v5.0.1...v5.0.2) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** accept Fastify 6 and use fastify-plugin 6 ([399a096](https://github.com/ducktors/arecibo/commit/399a096565f487ea1e077e06f7eac026287d793a))
+* **package:** do not publish the test files ([c2f0589](https://github.com/ducktors/arecibo/commit/c2f05899cad7463c2a651d447736c8c9c5563b07))
+* **schema:** send objects from custom callbacks as JSON ([8e3d64c](https://github.com/ducktors/arecibo/commit/8e3d64c142b4cd7d0d480846509eadd35ffd5d9d))
+* **types:** make the logLevel option optional ([47b7f9c](https://github.com/ducktors/arecibo/commit/47b7f9c8484172061ee805d88c5a264788bd15e0))
+
 ## [5.0.1](https://github.com/ducktors/arecibo/compare/v5.0.0...v5.0.1) (2026-11-27)
 
 
