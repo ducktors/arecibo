@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/ducktors/arecibo/compare/v5.0.0...v5.0.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** bump diff ([2c55115](https://github.com/ducktors/arecibo/commit/2c5511583fe9c09d1867582cab0dc906b3a43da4))
+
 # [5.0.0](https://github.com/ducktors/arecibo/compare/v4.0.4...v5.0.0) (2026-11-27)
 
 
