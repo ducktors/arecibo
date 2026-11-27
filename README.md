@@ -20,86 +20,27 @@
 
 </div>
 
-## Quick start for LLMs
+## Quick start
 
-This section is for AI coding agents. It contains the data that you need to add Arecibo to a Fastify application.
+This section also gives AI coding agents the data that they need to add Arecibo to a Fastify application.
 
-Requirements: Node.js 22 or later, and Fastify 4 or 5.
-
-```bash
-npm install arecibo
-```
-
-Register the plugin (`server.js`):
-
-```javascript
-const fastify = require('fastify')()
-const arecibo = require('arecibo')
-
-fastify.register(arecibo)
-
-fastify.listen({ port: 3000, host: '0.0.0.0' })
-```
-
-The plugin adds `GET /arecibo/readiness` and `GET /arecibo/liveness`. By default, each route replies with status 200.
-
-Add these fields to the container in your Kubernetes manifest:
-
-```yaml
-ports:
-  - name: http
-    containerPort: 3000
-startupProbe:
-  httpGet:
-    path: /arecibo/liveness
-    port: http
-  periodSeconds: 5
-  failureThreshold: 30
-livenessProbe:
-  httpGet:
-    path: /arecibo/liveness
-    port: http
-  periodSeconds: 15
-readinessProbe:
-  httpGet:
-    path: /arecibo/readiness
-    port: http
-  periodSeconds: 5
-```
-
-Rules:
-
-- To change the paths, use the `readinessURL` and `livenessURL` options. The plugin ignores `prefix`. Use the same paths in the manifest.
-- Do not check external dependencies in `livenessCallback`. Check them in `readinessCallback`, and reply with status 503 when the application is not ready.
-- Make global hooks, for example authentication, skip the probe URLs.
-- In TypeScript, use `import arecibo from 'arecibo'` (with `esModuleInterop`, `allowSyntheticDefaultImports`, or `"module": "nodenext"`). For CommonJS output without these settings, use `import arecibo = require('arecibo')`. Do not use `import * as arecibo`.
-
-## Installation
-**Requirements:** Node.js 22 or later, and Fastify 4 or 5.
-
-Only the latest major version of Arecibo is maintained. For Fastify 2 or 3, refer to the [older releases](https://github.com/ducktors/arecibo/releases).
+**Requirements:** Node.js 22 or later, and Fastify 4 or 5. Only the latest major version of Arecibo is maintained. For Fastify 2 or 3, refer to the [older releases](https://github.com/ducktors/arecibo/releases).
 
 ```bash
-pnpm add arecibo
-npm install arecibo
-yarn add arecibo
+npm install arecibo # or: pnpm add arecibo, yarn add arecibo
 ```
-
-## Usage in Node.js
-
-The plugin adds two `GET` routes: `/arecibo/readiness` and `/arecibo/liveness`. By default, each route replies with status 200 and the Arecibo message.
 
 ```javascript
 const fastify = require('fastify')({ logger: true })
 const arecibo = require('arecibo') // ES modules: import arecibo from 'arecibo'
 
-fastify.register(arecibo, {
-  logLevel: 'warn',
-})
+fastify.register(arecibo, { logLevel: 'warn' })
 
 // Listen on 0.0.0.0, because the kubelet connects to the Pod IP address.
 fastify.listen({ port: 3000, host: '0.0.0.0' })
 ```
+
+The plugin adds `GET /arecibo/readiness` and `GET /arecibo/liveness`. By default, each route replies with status 200 and the Arecibo message. For the probe settings, refer to [Kubernetes deployment manifest](#kubernetes-deployment-manifest).
 
 ## Options
 
@@ -234,7 +175,7 @@ spec:
 ## How to commit
 
 This repo uses [Semantic Release](https://github.com/semantic-release/semantic-release) with Conventional Commits.
-Releases are automatically created based on the type of commit message: feat for minor and fix for patch.
+The type of the commit message sets the type of the release:
 
 ```
 feat: new feature ---> 1.x.0
@@ -248,7 +189,6 @@ feat: remove an option
 
 BREAKING CHANGE: the option no longer exists.
 ```
-
 
 ## Reference
 * <a href="https://github.com/fastify/fastify">Fastify</a>
