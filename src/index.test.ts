@@ -348,14 +348,23 @@ test('readinessChecks', async (t) => {
     assert.equal(response.statusCode, 200)
   })
 
-  for (const value of [null, 0, -1, 1.5, Number.NaN, 2 ** 31, '500']) {
+  for (const value of [null, 0, -1, Number.NaN, 2 ** 31, 'abc']) {
     await t.test(`rejects checkTimeout ${String(value)}`, async () => {
       await assert.rejects(async () => {
         await Fastify().register(arecibo, {
           readinessChecks: { ok: () => true },
           checkTimeout: value as never,
         })
-      }, /checkTimeout must be an integer from 1 to 2147483647/)
+      }, /checkTimeout must be a number from 1 to 2147483647/)
+    })
+  }
+
+  for (const value of [1, 1.5, '500', 2147483647]) {
+    await t.test(`accepts checkTimeout ${String(value)}`, async () => {
+      await Fastify().register(arecibo, {
+        readinessChecks: { ok: () => true },
+        checkTimeout: value as never,
+      })
     })
   }
 

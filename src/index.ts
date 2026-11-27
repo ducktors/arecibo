@@ -125,17 +125,14 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
-    // `setTimeout` changes an invalid delay to 1 ms. Then all slow checks fail.
+    // `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms. Then all
+    // slow checks fail. A numeric string or a fraction is a correct delay.
     if (
       readinessChecks &&
-      !(
-        Number.isInteger(checkTimeout) &&
-        checkTimeout >= 1 &&
-        checkTimeout <= 2147483647
-      )
+      !(Number(checkTimeout) >= 1 && Number(checkTimeout) <= 2147483647)
     ) {
       return next(
-        new Error('checkTimeout must be an integer from 1 to 2147483647'),
+        new Error('checkTimeout must be a number from 1 to 2147483647'),
       )
     }
 
