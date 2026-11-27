@@ -18,14 +18,20 @@ function createResponseHandler(message: string): RouteHandler {
   return (_, reply) => reply.type('text/html').send(message)
 }
 
-interface Opts extends FastifyPluginOptions {
-  message?: string
-  readinessURL?: string
-  livenessURL?: string
-  readinessCallback?: RouteHandler
-  livenessCallback?: RouteHandler
-  logLevel: LogLevel
+// A namespace that contains only types merges with the `arecibo` constant.
+// Thus consumers can import the type, and `export =` stays the same.
+declare namespace arecibo {
+  export interface AreciboOptions extends FastifyPluginOptions {
+    message?: string
+    readinessURL?: string
+    livenessURL?: string
+    readinessCallback?: RouteHandler
+    livenessCallback?: RouteHandler
+    logLevel?: LogLevel
+  }
 }
+
+type Opts = arecibo.AreciboOptions
 
 const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
   (fastify, opts, next) => {
@@ -50,7 +56,7 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
   },
   {
     name: 'arecibo',
-    fastify: '^4.0.0 || ^5.0.0',
+    fastify: '^4.0.0 || ^5.0.0 || ^6.0.0',
   },
 )
 

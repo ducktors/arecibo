@@ -65,9 +65,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
-  "files": ["/lib"],
+  "files": ["/lib", "!/lib/index.test.*"],
   "dependencies": {
-    "fastify-plugin": "^5.0.1"
+    "fastify-plugin": "^6.0.1"
   },
   "engines": {
     "node": ">=22.0.0"
