@@ -134,13 +134,13 @@ ports:
     containerPort: 3000
 startupProbe:
   httpGet:
-    path: /arecibo/liveness
+    path: /arecibo/liveness # the startup probe and the liveness probe use the same route
     port: http
   periodSeconds: 5
   failureThreshold: 30
 livenessProbe:
   httpGet:
-    path: /arecibo/liveness
+    path: /arecibo/liveness # do not check external dependencies here
     port: http
   periodSeconds: 15
 readinessProbe:
@@ -150,7 +150,7 @@ readinessProbe:
   periodSeconds: 5
 ```
 
-- The `startupProbe` uses the liveness URL. In this example, the application has 150 seconds (30 x 5) to start. Kubernetes does not run the other probes until the startup probe succeeds.
+- In this example, the application has 150 seconds (30 x 5) to start. Kubernetes does not run the other probes until the startup probe succeeds.
 - To give the cluster time to stop new traffic to the Pod, add a `preStop` hook to the container, for example `lifecycle.preStop.sleep.seconds: 5`. Call `fastify.close()` when your process receives `SIGTERM`.
 - Set `terminationGracePeriodSeconds` of the Pod to a value longer than the `preStop` delay plus the shutdown time of your application.
 - Kubernetes enables the `sleep` action by default from version 1.30. The action is stable from version 1.34. For an older cluster, use an `exec` hook that runs `sleep`.
