@@ -1,6 +1,6 @@
 {
   "name": "arecibo",
-  "version": "4.0.4",
+  "version": "5.0.1",
   "description": "Fastify plugin that respondes to Kubernetes readiness and liveness probes.",
   "main": "./lib",
   "types": "./lib/index.d.ts",
@@ -49,8 +49,8 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.1",
-    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/github": "^12.0.11",
+    "@semantic-release/npm": "^13.2.0",
     "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/node": "^22.13.4",
     "commitizen": "^4.3.1",
@@ -61,16 +61,18 @@
     "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
-    "semantic-release": "^24.2.3",
+    "semantic-release": "^25.0.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   },
-  "files": ["/lib"],
+  "files": [
+    "/lib"
+  ],
   "dependencies": {
     "fastify-plugin": "^5.0.1"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
-  "packageManager": "pnpm@10.33.2"
+  "packageManager": "pnpm@12.23.0"
 }
