@@ -13,6 +13,19 @@ export const readinessSchema = {
   },
 }
 
+// Only the route with `readinessChecks` uses this schema. Thus a 503 reply from a
+// custom callback stays the same.
+export const readinessChecksSchema = {
+  ...readinessSchema,
+  response: {
+    ...readinessSchema.response,
+    503: {
+      description: 'A readiness check failed',
+      anyOf: [{}],
+    },
+  },
+}
+
 export const livenessSchema = {
   description:
     'The kubelet uses liveness probes to know when to restart a Container',

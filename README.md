@@ -112,6 +112,8 @@ All options are optional.
 | `livenessURL` | `string` | `'/arecibo/liveness'` | The path of the liveness route. |
 | `readinessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the readiness route. |
 | `livenessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the liveness route. |
+| `readinessChecks` | `Record<string, () => unknown>` | none | The checks of the readiness route. See [Readiness checks](#readiness-checks). |
+| `checkTimeout` | `number` | `500` | The time limit of each check, in milliseconds. |
 | `logLevel` | `'fatal'`, `'error'`, `'warn'`, `'info'`, `'debug'`, `'trace'`, or `'silent'` | `'info'` | The log level of the two routes. |
 
 ## Custom callbacks
@@ -137,6 +139,30 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
 ```
 
 **Do not check external dependencies in `livenessCallback`.** For example, do not check a database, a cache, or a different service. If a dependency fails, Kubernetes restarts your containers, and a restart does not repair the dependency. Put these checks in `readinessCallback`.
+
+## Readiness checks
+
+Use `readinessChecks` to let the plugin check your dependencies on each readiness request.
+
+```javascript
+fastify.register(arecibo, {
+  readinessChecks: {
+    database: () => db.query('SELECT 1'),
+    queue: () => queue.isConnected(), // false means that the check failed
+  },
+  checkTimeout: 500, // optional, in milliseconds, defaults to 500
+})
+```
+
+- The checks run in parallel.
+- A check fails if it throws, rejects, returns or resolves to `false`, or does not settle in `checkTimeout` milliseconds.
+- The timeout does not stop the work of a check. A check that blocks the event loop also blocks the timeout.
+- If all checks pass, the route replies with status 200 and `message`.
+- If a check fails, the route replies with status 503 and the body `Service Unavailable`. The plugin logs the name and the error with `request.log.error`. The `logLevel` option `'silent'` hides this log.
+- Do not use `readinessChecks` together with `readinessCallback`. The registration fails.
+- `readinessChecks` must be a plain object with at least one check, and each check must be a function. If not, the registration fails.
+- Set `timeoutSeconds` of the Kubernetes readiness probe to a value larger than `checkTimeout`.
+- The checks do not change the liveness route.
 
 ## Behaviour notes
 
