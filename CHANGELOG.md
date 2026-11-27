@@ -1,3 +1,10 @@
+## [5.1.1](https://github.com/ducktors/arecibo/compare/v5.1.0...v5.1.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* reject an invalid checkTimeout ([1bbd4e6](https://github.com/ducktors/arecibo/commit/1bbd4e6c9f337c15c74cbb74d4a25cb7c3a1dae9))
+
 # [5.1.0](https://github.com/ducktors/arecibo/compare/v5.0.2...v5.1.0) (2026-11-27)
 
 
