@@ -15,22 +15,69 @@
 [![CI](https://github.com/ducktors/arecibo/actions/workflows/ci.yaml/badge.svg)](https://github.com/ducktors/arecibo/actions/workflows/ci.yaml) ![pnpm@12.23.0](https://img.shields.io/badge/pnpm-12.23.0-yellow)
 [![NPM version](https://img.shields.io/npm/v/arecibo.svg?style=flat)](https://www.npmjs.com/package/arecibo)
 [![NPM downloads](https://img.shields.io/npm/dm/arecibo.svg?style=flat)](https://www.npmjs.com/package/arecibo)
-[![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![code style: Biome](https://img.shields.io/badge/code_style-biome-60a5fa.svg)](https://biomejs.dev)
 [![Known Vulnerabilities](https://snyk.io/test/github/ducktors/arecibo/badge.svg?targetFile=package.json)](https://snyk.io/test/github/ducktors/arecibo?targetFile=package.json)
 
 </div>
 
+## Quick start for LLMs
+
+This section is for AI coding agents. It contains the data that you need to add Arecibo to a Fastify application.
+
+Requirements: Node.js 22 or later, and Fastify 4 or 5.
+
+```bash
+npm install arecibo
+```
+
+Register the plugin (`server.js`):
+
+```javascript
+const fastify = require('fastify')()
+const arecibo = require('arecibo')
+
+fastify.register(arecibo)
+
+fastify.listen({ port: 3000, host: '0.0.0.0' })
+```
+
+The plugin adds `GET /arecibo/readiness` and `GET /arecibo/liveness`. By default, each route replies with status 200.
+
+Add these fields to the container in your Kubernetes manifest:
+
+```yaml
+ports:
+  - name: http
+    containerPort: 3000
+startupProbe:
+  httpGet:
+    path: /arecibo/liveness
+    port: http
+  periodSeconds: 5
+  failureThreshold: 30
+livenessProbe:
+  httpGet:
+    path: /arecibo/liveness
+    port: http
+  periodSeconds: 15
+readinessProbe:
+  httpGet:
+    path: /arecibo/readiness
+    port: http
+  periodSeconds: 5
+```
+
+Rules:
+
+- To change the paths, use the `readinessURL` and `livenessURL` options. The plugin ignores `prefix`. Use the same paths in the manifest.
+- Do not check external dependencies in `livenessCallback`. Check them in `readinessCallback`, and reply with status 503 when the application is not ready.
+- Make global hooks, for example authentication, skip the probe URLs.
+- In TypeScript, use `import arecibo from 'arecibo'` (with `esModuleInterop`, `allowSyntheticDefaultImports`, or `"module": "nodenext"`). For CommonJS output without these settings, use `import arecibo = require('arecibo')`. Do not use `import * as arecibo`.
+
 ## Installation
-__Note: Please refer to the table below to find the correct version of Arecibo for your Fastify version.__
+**Requirements:** Node.js 22 or later, and Fastify 4 or 5.
 
-
-| Arecibo version | Fastify version | Node.js version | Branch |
-| -- | -- | -- | -- |
-| [v5](https://github.com/ducktors/arecibo/releases/tag/v5.0.1) | Fastify 4, 5 | 22 or later | [master](https://github.com/ducktors/arecibo/tree/master) |
-| [v4](https://github.com/ducktors/arecibo/releases/tag/v4.0.4) | Fastify 4, 5 | 20 or later | not maintained |
-| [v3](https://github.com/ducktors/arecibo/releases/tag/v3.1.1) | Fastify 3, 4, 5 | | not maintained |
-| [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | | deprecated |
-
+Only the latest major version of Arecibo is maintained. For Fastify 2 or 3, refer to the [older releases](https://github.com/ducktors/arecibo/releases).
 
 ```bash
 pnpm add arecibo
@@ -40,22 +87,60 @@ yarn add arecibo
 
 ## Usage in Node.js
 
+The plugin adds two `GET` routes: `/arecibo/readiness` and `/arecibo/liveness`. By default, each route replies with status 200 and the Arecibo message.
+
 ```javascript
-const arecibo = require('arecibo')
-// or import arecibo from 'arecibo'
-// or import * as arecibo from 'arecibo'
+const fastify = require('fastify')({ logger: true })
+const arecibo = require('arecibo') // ES modules: import arecibo from 'arecibo'
 
 fastify.register(arecibo, {
-  message: 'Put here your custom message', // optional, default to original arecibo message
-  readinessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/readiness
-  livenessURL: '/put/here/your/custom/url', // optional, deafult to /arecibo/liveness
-  readinessCallback: (req, reply) => reply.type('text/html').send('Put here your custom message'), // optional
-  livenessCallback: (req, reply) => reply.type('text/html').send('Put here your custom message'), // optional
-  logLevel: 'error', // optional, defaults to 'info'; can be trace, debug, info, warn, error, and fatal
+  logLevel: 'warn',
 })
 
+// Listen on 0.0.0.0, because the kubelet connects to the Pod IP address.
+fastify.listen({ port: 3000, host: '0.0.0.0' })
 ```
-### Readiness checks
+
+## Options
+
+All options are optional.
+
+| Option | Type | Default | Description |
+| -- | -- | -- | -- |
+| `message` | `string` | the Arecibo message | The response body (`text/html`) of a route that has no callback. |
+| `readinessURL` | `string` | `'/arecibo/readiness'` | The path of the readiness route. |
+| `livenessURL` | `string` | `'/arecibo/liveness'` | The path of the liveness route. |
+| `readinessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the readiness route. |
+| `livenessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the liveness route. |
+| `readinessChecks` | `Record<string, () => unknown>` | none | The checks of the readiness route. See [Readiness checks](#readiness-checks). |
+| `checkTimeout` | `number` | `500` | The time limit of each check, in milliseconds. |
+| `logLevel` | `'fatal'`, `'error'`, `'warn'`, `'info'`, `'debug'`, `'trace'`, or `'silent'` | `'info'` | The log level of the two routes. |
+
+## Custom callbacks
+
+A callback is a Fastify route handler. It can send a string or an object. Fastify serializes an object as JSON. Reply with status 503 to tell Kubernetes that the application is not ready.
+
+```javascript
+const fastify = require('fastify')()
+const arecibo = require('arecibo')
+
+let ready = false // Set this to true when your application can accept traffic.
+
+fastify.register(arecibo, {
+  readinessCallback: (request, reply) => {
+    if (!ready) {
+      return reply.code(503).send({ status: 'not ready' })
+    }
+    return reply.send({ status: 'ready' })
+  },
+})
+
+fastify.listen({ port: 3000, host: '0.0.0.0' })
+```
+
+**Do not check external dependencies in `livenessCallback`.** For example, do not check a database, a cache, or a different service. If a dependency fails, Kubernetes restarts your containers, and a restart does not repair the dependency. Put these checks in `readinessCallback`.
+
+## Readiness checks
 
 Use `readinessChecks` to let the plugin check your dependencies on each readiness request.
 
@@ -75,41 +160,76 @@ fastify.register(arecibo, {
 - If all checks pass, the route replies with status 200 and `message`.
 - If a check fails, the route replies with status 503 and the body `Service Unavailable`. The plugin logs the name and the error with `request.log.error`. The `logLevel` option `'silent'` hides this log.
 - Do not use `readinessChecks` together with `readinessCallback`. The registration fails.
+- `readinessChecks` must be a plain object with at least one check, and each check must be a function. If not, the registration fails.
 - Set `timeoutSeconds` of the Kubernetes readiness probe to a value larger than `checkTimeout`.
 - The checks do not change the liveness route.
 
-### Note for TypeScript users
+## Behaviour notes
 
-If you set `"esModuleInterop": true` you must import this module using `import arecibo from 'arecibo'`.
+- The plugin ignores the `prefix` option of `register`, because it uses [fastify-plugin](https://github.com/fastify/fastify-plugin). To change the paths, use `readinessURL` and `livenessURL`.
+- Global hooks also apply to the probe routes. For example, an authentication `onRequest` hook can reject the probes. Make such a hook skip the probe URLs.
+- The plugin ignores `message` for a route that has a callback.
+- The routes also answer `HEAD` requests.
+- With the default `logLevel` (`'info'`), an enabled Fastify logger logs each probe request. Use `'warn'` to stop these request logs.
+- If a callback throws an error, the default Fastify error handler replies with status 500. The response body contains the error message. Do not put secrets in error messages.
 
-## On Kubernetes add deployment manifest
+## TypeScript
+
+```typescript
+import arecibo from 'arecibo'
+```
+
+This import needs `esModuleInterop`, `allowSyntheticDefaultImports`, or `"module": "nodenext"`. For CommonJS output without these settings, use `import arecibo = require('arecibo')`. Do not use `import * as arecibo from 'arecibo'`. With `esModuleInterop` or `nodenext`, `register` does not accept that value.
+
+## Kubernetes deployment manifest
 
 ```yaml
-...
-
-livenessProbe:
-  httpGet:
-    path: /arecibo/liveness
-    port: 80
-    httpHeaders:
-      - name: X-Custom-Header
-        value: Awesome
-  initialDelaySeconds: 15
-  timeoutSeconds: 1
-  periodSeconds: 15
-readinessProbe:
-  httpGet:
-    path: /arecibo/readiness
-    port: 80
-    httpHeaders:
-      - name: X-Custom-Header
-        value: Awesome
-  initialDelaySeconds: 5
-  timeoutSeconds: 1
-  periodSeconds: 15
-
-...
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: my-app
+          image: my-app:1.0.0
+          ports:
+            - name: http
+              containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /arecibo/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /arecibo/liveness
+              port: http
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /arecibo/readiness
+              port: http
+            periodSeconds: 5
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
 ```
+
+- The `startupProbe` uses the liveness URL. In this example, the application has 150 seconds (30 x 5) to start. Kubernetes does not run the other probes until the startup probe succeeds.
+- The `preStop` hook delays the `SIGTERM` signal. This gives the cluster time to stop new traffic to the Pod. Call `fastify.close()` when your process receives `SIGTERM`.
+- `terminationGracePeriodSeconds` must be longer than the `preStop` delay plus the shutdown time of your application.
+- Kubernetes enables the `sleep` action by default from version 1.30. The action is stable from version 1.34. For an older cluster, use an `exec` hook that runs `sleep`.
 
 ## How to commit
 
@@ -119,6 +239,14 @@ Releases are automatically created based on the type of commit message: feat for
 ```
 feat: new feature ---> 1.x.0
 fix: fix a bug ---> 1.0.x
+```
+
+To mark a breaking change, add a `BREAKING CHANGE:` footer to the commit message. This footer starts a major release. A `!` after the type (for example, `feat!:`) does not start a major release without this footer.
+
+```
+feat: remove an option
+
+BREAKING CHANGE: the option no longer exists.
 ```
 
 
