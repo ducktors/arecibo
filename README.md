@@ -83,7 +83,7 @@ __Note: Please refer to the table below to find the correct version of Arecibo f
 | [v5](https://github.com/ducktors/arecibo/releases/tag/v5.0.1) | Fastify 4, 5 | 22 or later | [master](https://github.com/ducktors/arecibo/tree/master) |
 | [v4](https://github.com/ducktors/arecibo/releases/tag/v4.0.4) | Fastify 4, 5 | 20 or later | not maintained |
 | [v3](https://github.com/ducktors/arecibo/releases/tag/v3.1.1) | Fastify 3, 4, 5 | | not maintained |
-| [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | | deprecated |
+| [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | | not maintained |
 
 
 ```bash
