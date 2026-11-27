@@ -304,7 +304,7 @@ test('readinessChecks', async (t) => {
   await t.test('rejects registration with readinessCallback', async () => {
     await assert.rejects(async () => {
       await Fastify().register(arecibo, {
-        readinessChecks: {},
+        readinessChecks: { ok: () => true },
         readinessCallback: async () => 'ok',
       })
     }, /Use readinessChecks or readinessCallback, not both/)
@@ -318,11 +318,41 @@ test('readinessChecks', async (t) => {
     }, /The readiness check "database" is not a function/)
   })
 
+  const invalidShapes: Record<string, unknown> = {
+    'a function': () => true,
+    'a Map': new Map([['database', () => true]]),
+    'a class instance': new (class {
+      database() {}
+    })(),
+    'an array': [() => true],
+    null: null,
+    'an empty object': {},
+  }
+
+  for (const [title, readinessChecks] of Object.entries(invalidShapes)) {
+    await t.test(`rejects readinessChecks given as ${title}`, async () => {
+      await assert.rejects(async () => {
+        await Fastify().register(arecibo, {
+          readinessChecks: readinessChecks as never,
+        })
+      }, /readinessChecks must be a plain object with at least one check/)
+    })
+  }
+
+  await t.test('accepts an object without a prototype', async () => {
+    const readinessChecks = Object.assign(Object.create(null), {
+      ok: () => true,
+    })
+    const { response } = await probe({ readinessChecks })
+
+    assert.equal(response.statusCode, 200)
+  })
+
   await t.test('adds the 503 schema only with readinessChecks', async () => {
     for (const [options, expected] of [
       [{}, false],
       [{ readinessCallback: async () => 'ok' }, false],
-      [{ readinessChecks: {} }, true],
+      [{ readinessChecks: { ok: () => true } }, true],
     ] as [AreciboOptions, boolean][]) {
       const fastify = Fastify()
       const has503: Record<string, boolean> = {}

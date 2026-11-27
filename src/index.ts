@@ -107,6 +107,24 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    // Other values can register no checks, or checks that you did not intend.
+    if (
+      readinessChecks !== undefined &&
+      !(
+        readinessChecks !== null &&
+        [Object.prototype, null].includes(
+          Object.getPrototypeOf(readinessChecks),
+        ) &&
+        Object.keys(readinessChecks).length > 0
+      )
+    ) {
+      return next(
+        new Error(
+          'readinessChecks must be a plain object with at least one check',
+        ),
+      )
+    }
+
     // A value that is not a function would count as a check that passed.
     const invalid = Object.entries(readinessChecks ?? {}).find(
       ([, check]) => typeof check !== 'function',
