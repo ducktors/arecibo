@@ -75,16 +75,9 @@ Rules:
 - In TypeScript, use `import arecibo from 'arecibo'` (with `esModuleInterop`, `allowSyntheticDefaultImports`, or `"module": "nodenext"`). For CommonJS output without these settings, use `import arecibo = require('arecibo')`. Do not use `import * as arecibo`.
 
 ## Installation
-__Note: Please refer to the table below to find the correct version of Arecibo for your Fastify version.__
+**Requirements:** Node.js 22 or later, and Fastify 4 or 5.
 
-
-| Arecibo version | Fastify version | Node.js version | Branch |
-| -- | -- | -- | -- |
-| [v5](https://github.com/ducktors/arecibo/releases/tag/v5.0.1) | Fastify 4, 5 | 22 or later | [master](https://github.com/ducktors/arecibo/tree/master) |
-| [v4](https://github.com/ducktors/arecibo/releases/tag/v4.0.4) | Fastify 4, 5 | 20 or later | not maintained |
-| [v3](https://github.com/ducktors/arecibo/releases/tag/v3.1.1) | Fastify 3, 4, 5 | | not maintained |
-| [v1.1.0](https://github.com/ducktors/arecibo/releases/tag/v1.1.0) | Fastify 2 | | not maintained |
-
+Only the latest major version of Arecibo is maintained. For Fastify 2 or 3, refer to the [older releases](https://github.com/ducktors/arecibo/releases).
 
 ```bash
 pnpm add arecibo
