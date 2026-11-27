@@ -70,7 +70,7 @@
     "fastify-plugin": "^5.0.1"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "packageManager": "pnpm@10.33.2"
 }
