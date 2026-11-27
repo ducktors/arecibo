@@ -348,6 +348,21 @@ test('readinessChecks', async (t) => {
     assert.equal(response.statusCode, 200)
   })
 
+  for (const value of [null, 0, -1, 1.5, Number.NaN, 2 ** 31, '500']) {
+    await t.test(`rejects checkTimeout ${String(value)}`, async () => {
+      await assert.rejects(async () => {
+        await Fastify().register(arecibo, {
+          readinessChecks: { ok: () => true },
+          checkTimeout: value as never,
+        })
+      }, /checkTimeout must be an integer from 1 to 2147483647/)
+    })
+  }
+
+  await t.test('ignores checkTimeout without readinessChecks', async () => {
+    await Fastify().register(arecibo, { checkTimeout: 0 })
+  })
+
   await t.test('adds the 503 schema only with readinessChecks', async () => {
     for (const [options, expected] of [
       [{}, false],

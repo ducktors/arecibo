@@ -113,7 +113,7 @@ All options are optional.
 | `readinessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the readiness route. |
 | `livenessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the liveness route. |
 | `readinessChecks` | `Record<string, () => unknown>` | none | The checks of the readiness route. See [Readiness checks](#readiness-checks). |
-| `checkTimeout` | `number` | `500` | The time limit of each check, in milliseconds. |
+| `checkTimeout` | `number` | `500` | The time limit of each check, in milliseconds. Use an integer from 1 to 2147483647. |
 | `logLevel` | `'fatal'`, `'error'`, `'warn'`, `'info'`, `'debug'`, `'trace'`, or `'silent'` | `'info'` | The log level of the two routes. |
 
 ## Custom callbacks
@@ -241,7 +241,7 @@ feat: new feature ---> 1.x.0
 fix: fix a bug ---> 1.0.x
 ```
 
-To mark a breaking change, add a `BREAKING CHANGE:` footer to the commit message. This footer starts a major release. A `!` after the type (for example, `feat!:`) does not start a major release without this footer.
+To mark a breaking change, add a `!` after the type (for example, `feat!:`) or add a `BREAKING CHANGE:` footer to the commit message. Each one starts a major release.
 
 ```
 feat: remove an option

@@ -125,6 +125,20 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    // `setTimeout` changes an invalid delay to 1 ms. Then all slow checks fail.
+    if (
+      readinessChecks &&
+      !(
+        Number.isInteger(checkTimeout) &&
+        checkTimeout >= 1 &&
+        checkTimeout <= 2147483647
+      )
+    ) {
+      return next(
+        new Error('checkTimeout must be an integer from 1 to 2147483647'),
+      )
+    }
+
     // A value that is not a function would count as a check that passed.
     const invalid = Object.entries(readinessChecks ?? {}).find(
       ([, check]) => typeof check !== 'function',
