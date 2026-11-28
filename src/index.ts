@@ -14,6 +14,14 @@ import {
 } from './schema'
 import { areciboMessage } from './arecibo-message'
 
+// The largest delay that `setTimeout` accepts.
+const MAX_DELAY = 2147483647
+
+// `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms.
+// A numeric string or a fraction is a correct delay.
+const isDelay = (value: unknown, min: number) =>
+  Number(value) >= min && Number(value) <= MAX_DELAY
+
 const ROUTES = {
   READINESS: '/arecibo/readiness',
   LIVENESS: '/arecibo/liveness',
@@ -80,6 +88,8 @@ declare namespace arecibo {
     readinessChecks?: Record<string, () => unknown | Promise<unknown>>
     // The time limit of each readiness check, in milliseconds.
     checkTimeout?: number
+    // Start `shutdown` with this delay, in milliseconds, on `SIGTERM`.
+    shutdownDelay?: number
     livenessCallback?: RouteHandler
     logLevel?: LogLevel
   }
@@ -88,6 +98,8 @@ declare namespace arecibo {
     // `false` makes the readiness route reply with status 503.
     setReady(ready: boolean): void
     isReady(): boolean
+    // Set not ready, wait `delay` milliseconds, then close Fastify.
+    shutdown(delay?: number): Promise<void>
   }
 }
 
@@ -112,6 +124,7 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
         : createResponseHandler(message),
       livenessCallback = createResponseHandler(message),
       logLevel = 'info',
+      shutdownDelay,
     } = opts
 
     if (readinessChecks && opts.readinessCallback) {
@@ -138,12 +151,8 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
-    // `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms. Then all
-    // slow checks fail. A numeric string or a fraction is a correct delay.
-    if (
-      readinessChecks &&
-      !(Number(checkTimeout) >= 1 && Number(checkTimeout) <= 2147483647)
-    ) {
+    // An invalid delay would make all slow checks fail.
+    if (readinessChecks && !isDelay(checkTimeout, 1)) {
       return next(
         new Error('checkTimeout must be a number from 1 to 2147483647'),
       )
@@ -159,17 +168,71 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    if (shutdownDelay !== undefined && !isDelay(shutdownDelay, 0)) {
+      return next(
+        new Error('shutdownDelay must be a number from 0 to 2147483647'),
+      )
+    }
+
     // All registrations of the plugin share one state.
     if (!fastify.hasDecorator('arecibo')) {
       let ready = true
+      let closed = false
+      let shutdown: Promise<void> | undefined
+      let wait: { timer: NodeJS.Timeout; resolve: () => void } | undefined
+
+      // If Fastify closes during the delay, the delay stops.
+      fastify.addHook('onClose', (_, done) => {
+        closed = true
+        if (wait) {
+          clearTimeout(wait.timer)
+          wait.resolve()
+        }
+        done()
+      })
+
       fastify.decorate('arecibo', {
         setReady: (value: boolean) => {
           ready = value === true
         },
         isReady: () => ready,
+        shutdown: (delay = 5000) => {
+          if (!isDelay(delay, 0)) {
+            return Promise.reject(
+              new Error('The delay must be a number from 0 to 2147483647'),
+            )
+          }
+          // A second call gets the same promise.
+          shutdown ??= (async () => {
+            ready = false
+            await new Promise<void>((resolve) => {
+              wait = { timer: setTimeout(resolve, Number(delay)), resolve }
+            })
+            wait = undefined
+            if (!closed) {
+              await fastify.close()
+            }
+          })()
+          return shutdown
+        },
       })
     }
     const state = fastify.arecibo
+
+    if (shutdownDelay !== undefined) {
+      const onSignal = () => {
+        fastify.log.info('SIGTERM received, the graceful shutdown starts')
+        state.shutdown(Number(shutdownDelay)).catch((err) => {
+          fastify.log.error({ err }, 'The graceful shutdown failed')
+          process.exitCode = 1
+        })
+      }
+      process.once('SIGTERM', onSignal)
+      fastify.addHook('onClose', (_, done) => {
+        process.removeListener('SIGTERM', onSignal)
+        done()
+      })
+    }
 
     fastify
       .get(

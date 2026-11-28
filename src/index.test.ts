@@ -458,3 +458,105 @@ test('setReady', async (t) => {
     assert.equal(fastify.arecibo.isReady(), false)
   })
 })
+
+test('shutdown', async (t) => {
+  const build = async (options: AreciboOptions = {}) => {
+    const fastify = Fastify()
+    let closes = 0
+    fastify.addHook('onClose', (_, done) => {
+      closes++
+      done()
+    })
+    await fastify.register(arecibo, { logLevel: 'silent', ...options })
+    fastify.get('/app', async () => 'app')
+    await fastify.ready()
+    return { fastify, closes: () => closes }
+  }
+
+  await t.test('sets not ready, waits, then closes Fastify', async () => {
+    const { fastify, closes } = await build()
+    const start = Date.now()
+    const done = fastify.arecibo.shutdown(100)
+
+    assert.equal(fastify.arecibo.isReady(), false)
+    for (const [url, code] of [
+      ['/arecibo/readiness', 503],
+      ['/arecibo/liveness', 200],
+      ['/app', 200],
+    ] as const) {
+      assert.equal((await fastify.inject(url)).statusCode, code)
+    }
+    assert.equal(closes(), 0)
+
+    await done
+    assert.ok(Date.now() - start >= 95)
+    assert.equal(closes(), 1)
+  })
+
+  await t.test('returns the same promise to a second call', async () => {
+    const { fastify, closes } = await build()
+    const first = fastify.arecibo.shutdown(10)
+    assert.equal(fastify.arecibo.shutdown(10), first)
+    await first
+    assert.equal(closes(), 1)
+  })
+
+  await t.test('stops the delay if Fastify closes', async () => {
+    const { fastify, closes } = await build()
+    const start = Date.now()
+    const done = fastify.arecibo.shutdown(60000)
+    await fastify.close()
+    await done
+    assert.ok(Date.now() - start < 1000)
+    assert.equal(closes(), 1)
+  })
+
+  for (const value of [-1, Number.NaN, 2 ** 31, 'abc']) {
+    await t.test(`rejects the delay ${String(value)}`, async () => {
+      const { fastify } = await build()
+      await assert.rejects(
+        fastify.arecibo.shutdown(value as never),
+        /The delay must be a number from 0 to 2147483647/,
+      )
+      assert.equal(fastify.arecibo.isReady(), true)
+      await fastify.close()
+    })
+
+    await t.test(`rejects shutdownDelay ${String(value)}`, async () => {
+      await assert.rejects(async () => {
+        await Fastify().register(arecibo, {
+          shutdownDelay: value as never,
+        })
+      }, /shutdownDelay must be a number from 0 to 2147483647/)
+    })
+  }
+
+  await t.test('does not listen to SIGTERM without shutdownDelay', async () => {
+    const before = process.listenerCount('SIGTERM')
+    const { fastify } = await build()
+    assert.equal(process.listenerCount('SIGTERM'), before)
+    await fastify.close()
+  })
+
+  await t.test(
+    'starts the shutdown on SIGTERM with shutdownDelay',
+    async () => {
+      const before = process.listenerCount('SIGTERM')
+      const { fastify, closes } = await build({ shutdownDelay: 20 })
+      assert.equal(process.listenerCount('SIGTERM'), before + 1)
+
+      process.emit('SIGTERM')
+      assert.equal(fastify.arecibo.isReady(), false)
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      assert.equal(closes(), 1)
+      assert.equal(process.listenerCount('SIGTERM'), before)
+    },
+  )
+
+  await t.test('removes the SIGTERM listener on close', async () => {
+    const before = process.listenerCount('SIGTERM')
+    const { fastify } = await build({ shutdownDelay: 20 })
+    await fastify.close()
+    assert.equal(process.listenerCount('SIGTERM'), before)
+  })
+})
