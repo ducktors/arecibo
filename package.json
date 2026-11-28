@@ -17,7 +17,7 @@
     "commit": "npx git-cz",
     "prepare": "husky",
     "update": "npx npm-check -u",
-    "test": "node --test --require ts-node/register src/index.test.ts"
+    "test": "tsc -p ./tsconfig.json && node --test --enable-source-maps lib/index.test.js"
   },
   "repository": {
     "type": "git",
@@ -62,7 +62,6 @@
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.1.4",
     "semantic-release": "^25.0.9",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "files": [
