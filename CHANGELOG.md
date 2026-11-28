@@ -1,3 +1,17 @@
+# [5.2.0](https://github.com/ducktors/arecibo/compare/v5.1.1...v5.2.0) (2026-11-28)
+
+
+### Bug Fixes
+
+* keep the graceful shutdown on a second SIGTERM ([6900d7f](https://github.com/ducktors/arecibo/commit/6900d7fecb5671a13f0e9fd552bb61db1ea3b44b))
+
+
+### Features
+
+* add a graceful shutdown with the shutdownDelay option ([57b271f](https://github.com/ducktors/arecibo/commit/57b271ffb278fc8026f160edd365b820b81bf2fc))
+* add checkInterval to run the readiness checks in the background ([0fd157e](https://github.com/ducktors/arecibo/commit/0fd157e786747073cadb7c6ae4f096b57c82ad5d))
+* add setReady and isReady to change the readiness state ([13406a9](https://github.com/ducktors/arecibo/commit/13406a9cabe1bc44bb747c28de0537a7b4efb543))
+
 ## [5.1.1](https://github.com/ducktors/arecibo/compare/v5.1.0...v5.1.1) (2026-11-27)
 
 
