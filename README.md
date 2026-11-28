@@ -141,7 +141,7 @@ fastify.arecibo.setReady(true)
 ```
 
 - `setReady(false)` makes the readiness route reply with status 503 and the body `Service Unavailable`. Only `true` makes the application ready again.
-- The state applies before the readiness handler. Thus the plugin does not run `readinessChecks` or `readinessCallback` while the application is not ready.
+- The state applies before the readiness handler. Thus the plugin does not run `readinessCallback`, or the checks of a request, while the application is not ready. With `checkInterval`, the checks continue to run in the background.
 - `isReady()` returns the current state. The initial state is ready.
 - The state does not change the liveness route.
 - If you register the plugin more than one time in the same context, or in a child context, all registrations share one state. Registrations in two sibling contexts have two different states.
