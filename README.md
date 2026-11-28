@@ -57,6 +57,7 @@ All options are optional.
 | `livenessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the liveness route. |
 | `readinessChecks` | `Record<string, () => unknown>` | none | The checks of the readiness route. See [Readiness checks](#readiness-checks). |
 | `checkTimeout` | `number` | `500` | The time limit of each check, in milliseconds. Use a number from 1 to 2147483647. |
+| `checkInterval` | `number` | none | If set, the checks run in the background at this interval, in milliseconds. See [Checks in the background](#checks-in-the-background). |
 | `shutdownDelay` | `number` | none | If set, the plugin starts a graceful shutdown with this delay, in milliseconds, on `SIGTERM`. See [Graceful shutdown](#graceful-shutdown). |
 | `logLevel` | `'fatal'`, `'error'`, `'warn'`, `'info'`, `'debug'`, `'trace'`, or `'silent'` | `'info'` | The log level of the two routes. |
 
@@ -107,6 +108,25 @@ fastify.register(arecibo, {
 - `readinessChecks` must be a plain object with at least one check, and each check must be a function. If not, the registration fails.
 - Set `timeoutSeconds` of the Kubernetes readiness probe to a value larger than `checkTimeout`.
 - The checks do not change the liveness route.
+
+### Checks in the background
+
+Without `checkInterval`, the checks run on each readiness request. Each Pod then sends a query to your dependencies on each probe. Use `checkInterval` to run the checks at a fixed interval:
+
+```javascript
+fastify.register(arecibo, {
+  readinessChecks: { database: () => db.query('SELECT 1') },
+  checkInterval: 5000, // in milliseconds
+})
+```
+
+- The first run starts when Fastify is ready. `fastify.ready()` waits for the first run.
+- The readiness route replies with the result of the last run. It does not run the checks.
+- The next run starts `checkInterval` milliseconds after the previous run ends. Thus two runs never overlap.
+- A result can be old by up to `checkInterval` plus `checkTimeout` milliseconds.
+- The plugin logs a failed check with `fastify.log.error` only when the check starts to fail. It logs with `fastify.log.info` when the check passes again. These logs use the `logLevel` option.
+- The runs stop when Fastify closes.
+- If you use `checkInterval` without `readinessChecks`, or if the value is not a number from 1 to 2147483647, the registration fails.
 
 ## Readiness state
 

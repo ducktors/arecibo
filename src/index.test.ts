@@ -560,3 +560,119 @@ test('shutdown', async (t) => {
     assert.equal(process.listenerCount('SIGTERM'), before)
   })
 })
+
+test('checkInterval', async (t) => {
+  keepAlive(t)
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+  const build = async (options: AreciboOptions, level = 'info') => {
+    const logs: { msg: string; check?: string }[] = []
+    const fastify = Fastify({
+      logger: {
+        level: 'info',
+        stream: { write: (line: string) => logs.push(JSON.parse(line)) },
+      },
+    })
+    await fastify.register(arecibo, {
+      logLevel: level as never,
+      ...options,
+    })
+    await fastify.ready()
+    t.after(() => fastify.close())
+    const status = async () =>
+      (await fastify.inject('/arecibo/readiness')).statusCode
+    const messages = () =>
+      logs.filter((line) => line.check).map((line) => line.msg)
+    return { fastify, status, messages }
+  }
+
+  await t.test(
+    'runs the checks in the background, not per request',
+    async () => {
+      let calls = 0
+      const { status } = await build({
+        checkInterval: 50,
+        readinessChecks: { counted: () => ++calls },
+      })
+      assert.equal(calls, 1)
+      for (let i = 0; i < 3; i++) assert.equal(await status(), 200)
+      assert.equal(calls, 1)
+      await wait(130)
+      assert.ok(calls >= 2)
+    },
+  )
+
+  await t.test('replies 503 and logs only the changes', async () => {
+    let healthy = false
+    const { status, messages } = await build({
+      checkInterval: 20,
+      readinessChecks: { db: () => healthy },
+    })
+    assert.equal(await status(), 503)
+    await wait(100)
+    assert.deepEqual(messages(), ['A readiness check failed'])
+
+    healthy = true
+    await wait(60)
+    assert.equal(await status(), 200)
+    assert.deepEqual(messages(), [
+      'A readiness check failed',
+      'A readiness check passed again',
+    ])
+  })
+
+  await t.test('does not overlap two runs', async () => {
+    let running = 0
+    let most = 0
+    await build({
+      checkInterval: 1,
+      checkTimeout: 200,
+      readinessChecks: {
+        slow: async () => {
+          most = Math.max(most, ++running)
+          await wait(30)
+          running--
+        },
+      },
+    })
+    await wait(150)
+    assert.equal(most, 1)
+  })
+
+  await t.test('stops the runs when Fastify closes', async () => {
+    let calls = 0
+    const { fastify } = await build({
+      checkInterval: 10,
+      readinessChecks: { counted: () => ++calls },
+    })
+    await fastify.close()
+    const after = calls
+    await wait(60)
+    assert.equal(calls, after)
+  })
+
+  await t.test('uses logLevel for the background logs', async () => {
+    const { messages } = await build(
+      { checkInterval: 20, readinessChecks: { db: () => false } },
+      'silent',
+    )
+    await wait(50)
+    assert.deepEqual(messages(), [])
+  })
+
+  await t.test('rejects checkInterval without readinessChecks', async () => {
+    await assert.rejects(async () => {
+      await Fastify().register(arecibo, { checkInterval: 1000 })
+    }, /checkInterval needs readinessChecks/)
+  })
+
+  for (const value of [0, -1, Number.NaN, 2 ** 31, 'abc']) {
+    await t.test(`rejects checkInterval ${String(value)}`, async () => {
+      await assert.rejects(async () => {
+        await Fastify().register(arecibo, {
+          readinessChecks: { ok: () => true },
+          checkInterval: value as never,
+        })
+      }, /checkInterval must be a number from 1 to 2147483647/)
+    })
+  }
+})
