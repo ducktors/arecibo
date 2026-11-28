@@ -391,3 +391,309 @@ test('readinessChecks', async (t) => {
     }
   })
 })
+
+test('setReady', async (t) => {
+  const modes: Record<string, AreciboOptions> = {
+    'the default handler': {},
+    readinessChecks: { readinessChecks: { ok: () => true } },
+    'a custom callback': { readinessCallback: async () => 'custom' },
+  }
+  for (const [title, options] of Object.entries(modes)) {
+    await t.test(`gates ${title}`, async () => {
+      const fastify = Fastify()
+      await fastify.register(arecibo, { logLevel: 'silent', ...options })
+
+      assert.equal(fastify.arecibo.isReady(), true)
+      fastify.arecibo.setReady(false)
+      assert.equal(fastify.arecibo.isReady(), false)
+      for (const method of ['GET', 'HEAD'] as const) {
+        const response = await fastify.inject({
+          method,
+          url: '/arecibo/readiness',
+        })
+        assert.equal(response.statusCode, 503)
+      }
+      const readiness = await fastify.inject('/arecibo/readiness')
+      assert.equal(readiness.payload, 'Service Unavailable')
+      assert.equal(readiness.headers['content-type'], 'text/html')
+      const liveness = await fastify.inject('/arecibo/liveness')
+      assert.equal(liveness.statusCode, 200)
+
+      fastify.arecibo.setReady(true)
+      const again = await fastify.inject('/arecibo/readiness')
+      assert.equal(again.statusCode, 200)
+    })
+  }
+
+  await t.test('does not run the checks when not ready', async () => {
+    let calls = 0
+    const fastify = Fastify()
+    await fastify.register(arecibo, {
+      logLevel: 'silent',
+      readinessChecks: { counted: () => ++calls },
+    })
+    fastify.arecibo.setReady(false)
+    await fastify.inject('/arecibo/readiness')
+    assert.equal(calls, 0)
+  })
+
+  await t.test('shares the state between two registrations', async () => {
+    const fastify = Fastify()
+    await fastify.register(arecibo, { logLevel: 'silent' })
+    await fastify.register(arecibo, {
+      logLevel: 'silent',
+      readinessURL: '/second/readiness',
+      livenessURL: '/second/liveness',
+    })
+    fastify.arecibo.setReady(false)
+    for (const url of ['/arecibo/readiness', '/second/readiness']) {
+      assert.equal((await fastify.inject(url)).statusCode, 503)
+    }
+  })
+
+  await t.test('accepts only true as ready', async () => {
+    const fastify = Fastify()
+    await fastify.register(arecibo)
+    fastify.arecibo.setReady('yes' as never)
+    assert.equal(fastify.arecibo.isReady(), false)
+  })
+})
+
+test('shutdown', async (t) => {
+  const build = async (options: AreciboOptions = {}) => {
+    const fastify = Fastify()
+    let closes = 0
+    fastify.addHook('onClose', (_, done) => {
+      closes++
+      done()
+    })
+    await fastify.register(arecibo, { logLevel: 'silent', ...options })
+    fastify.get('/app', async () => 'app')
+    await fastify.ready()
+    return { fastify, closes: () => closes }
+  }
+
+  await t.test('sets not ready, waits, then closes Fastify', async () => {
+    const { fastify, closes } = await build()
+    const start = Date.now()
+    const done = fastify.arecibo.shutdown(100)
+
+    assert.equal(fastify.arecibo.isReady(), false)
+    for (const [url, code] of [
+      ['/arecibo/readiness', 503],
+      ['/arecibo/liveness', 200],
+      ['/app', 200],
+    ] as const) {
+      assert.equal((await fastify.inject(url)).statusCode, code)
+    }
+    assert.equal(closes(), 0)
+
+    await done
+    assert.ok(Date.now() - start >= 95)
+    assert.equal(closes(), 1)
+  })
+
+  await t.test('returns the same promise to a second call', async () => {
+    const { fastify, closes } = await build()
+    const first = fastify.arecibo.shutdown(10)
+    assert.equal(fastify.arecibo.shutdown(10), first)
+    await first
+    assert.equal(closes(), 1)
+  })
+
+  await t.test('stops the delay if Fastify closes', async () => {
+    const { fastify, closes } = await build()
+    const start = Date.now()
+    const done = fastify.arecibo.shutdown(60000)
+    await fastify.close()
+    await done
+    assert.ok(Date.now() - start < 1000)
+    assert.equal(closes(), 1)
+  })
+
+  for (const value of [-1, Number.NaN, 2 ** 31, 'abc', null, true, '', []]) {
+    await t.test(`rejects the delay ${String(value)}`, async () => {
+      const { fastify } = await build()
+      await assert.rejects(
+        fastify.arecibo.shutdown(value as never),
+        /The delay must be a number from 0 to 2147483647/,
+      )
+      assert.equal(fastify.arecibo.isReady(), true)
+      await fastify.close()
+    })
+
+    await t.test(`rejects shutdownDelay ${String(value)}`, async () => {
+      await assert.rejects(async () => {
+        await Fastify().register(arecibo, {
+          shutdownDelay: value as never,
+        })
+      }, /shutdownDelay must be a number from 0 to 2147483647/)
+    })
+  }
+
+  await t.test('does not listen to SIGTERM without shutdownDelay', async () => {
+    const before = process.listenerCount('SIGTERM')
+    const { fastify } = await build()
+    assert.equal(process.listenerCount('SIGTERM'), before)
+    await fastify.close()
+  })
+
+  await t.test(
+    'starts the shutdown on SIGTERM with shutdownDelay',
+    async () => {
+      const before = process.listenerCount('SIGTERM')
+      const { fastify, closes } = await build({ shutdownDelay: 20 })
+      assert.equal(process.listenerCount('SIGTERM'), before + 1)
+
+      process.emit('SIGTERM')
+      assert.equal(fastify.arecibo.isReady(), false)
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      assert.equal(closes(), 1)
+      assert.equal(process.listenerCount('SIGTERM'), before)
+    },
+  )
+
+  await t.test('keeps the shutdown on a second SIGTERM', async () => {
+    const before = process.listenerCount('SIGTERM')
+    const { fastify, closes } = await build({ shutdownDelay: 50 })
+    process.emit('SIGTERM')
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    assert.equal(process.listenerCount('SIGTERM'), before + 1)
+    process.emit('SIGTERM')
+    assert.equal(fastify.arecibo.isReady(), false)
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    assert.equal(closes(), 1)
+    assert.equal(process.listenerCount('SIGTERM'), before)
+  })
+
+  await t.test('does not wait if Fastify is already closed', async () => {
+    const { fastify } = await build()
+    await fastify.close()
+    const start = Date.now()
+    await fastify.arecibo.shutdown(60000)
+    assert.ok(Date.now() - start < 1000)
+  })
+
+  await t.test('removes the SIGTERM listener on close', async () => {
+    const before = process.listenerCount('SIGTERM')
+    const { fastify } = await build({ shutdownDelay: 20 })
+    await fastify.close()
+    assert.equal(process.listenerCount('SIGTERM'), before)
+  })
+})
+
+test('checkInterval', async (t) => {
+  keepAlive(t)
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+  const build = async (options: AreciboOptions, level = 'info') => {
+    const logs: { msg: string; check?: string }[] = []
+    const fastify = Fastify({
+      logger: {
+        level: 'info',
+        stream: { write: (line: string) => logs.push(JSON.parse(line)) },
+      },
+    })
+    await fastify.register(arecibo, {
+      logLevel: level as never,
+      ...options,
+    })
+    await fastify.ready()
+    t.after(() => fastify.close())
+    const status = async () =>
+      (await fastify.inject('/arecibo/readiness')).statusCode
+    const messages = () =>
+      logs.filter((line) => line.check).map((line) => line.msg)
+    return { fastify, status, messages }
+  }
+
+  await t.test(
+    'runs the checks in the background, not per request',
+    async () => {
+      let calls = 0
+      const { status } = await build({
+        checkInterval: 50,
+        readinessChecks: { counted: () => ++calls },
+      })
+      assert.equal(calls, 1)
+      for (let i = 0; i < 3; i++) assert.equal(await status(), 200)
+      assert.equal(calls, 1)
+      await wait(130)
+      assert.ok(calls >= 2)
+    },
+  )
+
+  await t.test('replies 503 and logs only the changes', async () => {
+    let healthy = false
+    const { status, messages } = await build({
+      checkInterval: 20,
+      readinessChecks: { db: () => healthy },
+    })
+    assert.equal(await status(), 503)
+    await wait(100)
+    assert.deepEqual(messages(), ['A readiness check failed'])
+
+    healthy = true
+    await wait(60)
+    assert.equal(await status(), 200)
+    assert.deepEqual(messages(), [
+      'A readiness check failed',
+      'A readiness check passed again',
+    ])
+  })
+
+  await t.test('does not overlap two runs', async () => {
+    let running = 0
+    let most = 0
+    await build({
+      checkInterval: 1,
+      checkTimeout: 200,
+      readinessChecks: {
+        slow: async () => {
+          most = Math.max(most, ++running)
+          await wait(30)
+          running--
+        },
+      },
+    })
+    await wait(150)
+    assert.equal(most, 1)
+  })
+
+  await t.test('stops the runs when Fastify closes', async () => {
+    let calls = 0
+    const { fastify } = await build({
+      checkInterval: 10,
+      readinessChecks: { counted: () => ++calls },
+    })
+    await fastify.close()
+    const after = calls
+    await wait(60)
+    assert.equal(calls, after)
+  })
+
+  await t.test('uses logLevel for the background logs', async () => {
+    const { messages } = await build(
+      { checkInterval: 20, readinessChecks: { db: () => false } },
+      'silent',
+    )
+    await wait(50)
+    assert.deepEqual(messages(), [])
+  })
+
+  await t.test('rejects checkInterval without readinessChecks', async () => {
+    await assert.rejects(async () => {
+      await Fastify().register(arecibo, { checkInterval: 1000 })
+    }, /checkInterval needs readinessChecks/)
+  })
+
+  for (const value of [0, -1, Number.NaN, 2 ** 31, 'abc']) {
+    await t.test(`rejects checkInterval ${String(value)}`, async () => {
+      await assert.rejects(async () => {
+        await Fastify().register(arecibo, {
+          readinessChecks: { ok: () => true },
+          checkInterval: value as never,
+        })
+      }, /checkInterval must be a number from 1 to 2147483647/)
+    })
+  }
+})

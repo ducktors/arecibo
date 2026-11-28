@@ -1,6 +1,8 @@
 import type {
   FastifyPluginCallback,
+  FastifyInstance,
   FastifyPluginOptions,
+  FastifyReply,
   LogLevel,
   RouteHandler,
 } from 'fastify'
@@ -13,6 +15,18 @@ import {
 } from './schema'
 import { areciboMessage } from './arecibo-message'
 
+// The largest delay that `setTimeout` accepts.
+const MAX_DELAY = 2147483647
+
+// `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms.
+// A numeric string or a fraction is a correct delay. `Number` changes other
+// values such as `null`, `true`, or `''` to a number, thus check the type.
+const isDelay = (value: unknown, min: number) =>
+  (typeof value === 'number' ||
+    (typeof value === 'string' && value.trim() !== '')) &&
+  Number(value) >= min &&
+  Number(value) <= MAX_DELAY
+
 const ROUTES = {
   READINESS: '/arecibo/readiness',
   LIVENESS: '/arecibo/liveness',
@@ -22,49 +36,105 @@ function createResponseHandler(message: string): RouteHandler {
   return (_, reply) => reply.type('text/html').send(message)
 }
 
+type Checks = NonNullable<arecibo.AreciboOptions['readinessChecks']>
+
+// Returns the error of each check that failed, by name.
+async function runChecks(checks: Checks, timeout: number) {
+  const failures = new Map<string, unknown>()
+  await Promise.all(
+    Object.entries(checks).map(async ([name, check]) => {
+      let timer: NodeJS.Timeout | undefined
+      try {
+        // `race` also handles a rejection that occurs after the timeout.
+        const result = await Promise.race([
+          // `then` changes a synchronous error into a rejection.
+          Promise.resolve().then(check),
+          new Promise((_, reject) => {
+            timer = setTimeout(
+              reject,
+              timeout,
+              new Error(`The check did not settle in ${timeout} ms`),
+            ).unref()
+          }),
+        ])
+        if (result === false) {
+          throw new Error('The check returned false')
+        }
+      } catch (error) {
+        failures.set(name, error)
+      } finally {
+        clearTimeout(timer)
+      }
+    }),
+  )
+  return failures
+}
+
+function reply503(reply: FastifyReply) {
+  return reply.code(503).type('text/html').send('Service Unavailable')
+}
+
 function createChecksHandler(
-  checks: NonNullable<arecibo.AreciboOptions['readinessChecks']>,
+  checks: Checks,
   timeout: number,
   message: string,
 ): RouteHandler {
   return async (request, reply) => {
-    const results = await Promise.all(
-      Object.entries(checks).map(async ([name, check]) => {
-        let timer: NodeJS.Timeout | undefined
-        try {
-          // `race` also handles a rejection that occurs after the timeout.
-          const result = await Promise.race([
-            // `then` changes a synchronous error into a rejection.
-            Promise.resolve().then(check),
-            new Promise((_, reject) => {
-              timer = setTimeout(
-                reject,
-                timeout,
-                new Error(`The check did not settle in ${timeout} ms`),
-              ).unref()
-            }),
-          ])
-          if (result === false) {
-            throw new Error('The check returned false')
-          }
-          return true
-        } catch (error) {
-          request.log.error(
-            { err: error, check: name },
-            'A readiness check failed',
-          )
-          return false
-        } finally {
-          clearTimeout(timer)
-        }
-      }),
-    )
-
-    reply.type('text/html')
-    return results.includes(false)
-      ? reply.code(503).send('Service Unavailable')
-      : reply.send(message)
+    const failures = await runChecks(checks, timeout)
+    for (const [check, err] of failures) {
+      request.log.error({ err, check }, 'A readiness check failed')
+    }
+    return failures.size > 0
+      ? reply503(reply)
+      : reply.type('text/html').send(message)
   }
+}
+
+// Runs the checks in the background. The route reads the last result.
+function createIntervalChecksHandler(
+  fastify: FastifyInstance,
+  checks: Checks,
+  timeout: number,
+  interval: number,
+  message: string,
+  logLevel: LogLevel,
+): RouteHandler {
+  const log = fastify.log.child({}, { level: logLevel })
+  let passed = false
+  let failed = new Map<string, unknown>()
+  let timer: NodeJS.Timeout | undefined
+  let closed = false
+
+  const run = async () => {
+    const failures = await runChecks(checks, timeout)
+    // Log only the changes, because the checks run often.
+    for (const [check, err] of failures) {
+      if (!failed.has(check)) {
+        log.error({ err, check }, 'A readiness check failed')
+      }
+    }
+    for (const check of failed.keys()) {
+      if (!failures.has(check)) {
+        log.info({ check }, 'A readiness check passed again')
+      }
+    }
+    failed = failures
+    passed = failures.size === 0
+    if (!closed) {
+      // The next run starts after this run. Thus two runs never overlap.
+      timer = setTimeout(run, interval).unref()
+    }
+  }
+
+  fastify.addHook('onReady', run)
+  fastify.addHook('onClose', (_, done) => {
+    closed = true
+    clearTimeout(timer)
+    done()
+  })
+
+  return (_, reply) =>
+    passed ? reply.type('text/html').send(message) : reply503(reply)
 }
 
 // A namespace that contains only types merges with the `arecibo` constant.
@@ -79,8 +149,26 @@ declare namespace arecibo {
     readinessChecks?: Record<string, () => unknown | Promise<unknown>>
     // The time limit of each readiness check, in milliseconds.
     checkTimeout?: number
+    // Run the checks in the background at this interval, in milliseconds.
+    checkInterval?: number
+    // Start `shutdown` with this delay, in milliseconds, on `SIGTERM`.
+    shutdownDelay?: number
     livenessCallback?: RouteHandler
     logLevel?: LogLevel
+  }
+
+  export interface AreciboDecorator {
+    // `false` makes the readiness route reply with status 503.
+    setReady(ready: boolean): void
+    isReady(): boolean
+    // Set not ready, wait `delay` milliseconds, then close Fastify.
+    shutdown(delay?: number): Promise<void>
+  }
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    arecibo: arecibo.AreciboDecorator
   }
 }
 
@@ -94,11 +182,10 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       livenessURL = ROUTES.LIVENESS,
       readinessChecks,
       checkTimeout = 500,
-      readinessCallback = readinessChecks
-        ? createChecksHandler(readinessChecks, checkTimeout, message)
-        : createResponseHandler(message),
+      checkInterval,
       livenessCallback = createResponseHandler(message),
       logLevel = 'info',
+      shutdownDelay,
     } = opts
 
     if (readinessChecks && opts.readinessCallback) {
@@ -125,12 +212,8 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
-    // `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms. Then all
-    // slow checks fail. A numeric string or a fraction is a correct delay.
-    if (
-      readinessChecks &&
-      !(Number(checkTimeout) >= 1 && Number(checkTimeout) <= 2147483647)
-    ) {
+    // An invalid delay would make all slow checks fail.
+    if (readinessChecks && !isDelay(checkTimeout, 1)) {
       return next(
         new Error('checkTimeout must be a number from 1 to 2147483647'),
       )
@@ -146,12 +229,119 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    if (checkInterval !== undefined) {
+      if (!readinessChecks) {
+        return next(new Error('checkInterval needs readinessChecks'))
+      }
+      if (!isDelay(checkInterval, 1)) {
+        return next(
+          new Error('checkInterval must be a number from 1 to 2147483647'),
+        )
+      }
+    }
+
+    if (shutdownDelay !== undefined && !isDelay(shutdownDelay, 0)) {
+      return next(
+        new Error('shutdownDelay must be a number from 0 to 2147483647'),
+      )
+    }
+
+    let readinessCallback =
+      opts.readinessCallback ?? createResponseHandler(message)
+    if (readinessChecks) {
+      readinessCallback =
+        checkInterval === undefined
+          ? createChecksHandler(readinessChecks, Number(checkTimeout), message)
+          : createIntervalChecksHandler(
+              fastify,
+              readinessChecks,
+              Number(checkTimeout),
+              Number(checkInterval),
+              message,
+              logLevel,
+            )
+    }
+
+    // All registrations of the plugin share one state.
+    if (!fastify.hasDecorator('arecibo')) {
+      let ready = true
+      let closed = false
+      let shutdown: Promise<void> | undefined
+      let wait: { timer: NodeJS.Timeout; resolve: () => void } | undefined
+
+      // If Fastify closes during the delay, the delay stops.
+      fastify.addHook('onClose', (_, done) => {
+        closed = true
+        if (wait) {
+          clearTimeout(wait.timer)
+          wait.resolve()
+        }
+        done()
+      })
+
+      fastify.decorate('arecibo', {
+        setReady: (value: boolean) => {
+          ready = value === true
+        },
+        isReady: () => ready,
+        shutdown: (delay = 5000) => {
+          if (!isDelay(delay, 0)) {
+            return Promise.reject(
+              new Error('The delay must be a number from 0 to 2147483647'),
+            )
+          }
+          // A second call gets the same promise.
+          shutdown ??= (async () => {
+            ready = false
+            if (closed) {
+              return
+            }
+            await new Promise<void>((resolve) => {
+              wait = { timer: setTimeout(resolve, Number(delay)), resolve }
+            })
+            wait = undefined
+            if (!closed) {
+              await fastify.close()
+            }
+          })()
+          return shutdown
+        },
+      })
+    }
+    const state = fastify.arecibo
+
+    if (shutdownDelay !== undefined) {
+      const onSignal = () => {
+        fastify.log.info('SIGTERM received, the graceful shutdown starts')
+        state.shutdown(Number(shutdownDelay)).catch((err) => {
+          fastify.log.error({ err }, 'The graceful shutdown failed')
+          process.exitCode = 1
+        })
+      }
+      // `on`, not `once`: with `once`, a second signal during the delay would
+      // stop the process at once. A second call of `shutdown` does nothing.
+      process.on('SIGTERM', onSignal)
+      fastify.addHook('onClose', (_, done) => {
+        process.removeListener('SIGTERM', onSignal)
+        done()
+      })
+    }
+
     fastify
       .get(
         readinessURL,
         {
           schema: readinessChecks ? readinessChecksSchema : readinessSchema,
           logLevel,
+          // The hook replies before the handler, thus the checks do not run.
+          onRequest: async (_, reply: FastifyReply) => {
+            if (!state.isReady()) {
+              return reply
+                .code(503)
+                .type('text/html')
+                .send('Service Unavailable')
+            }
+          },
         },
         readinessCallback,
       )

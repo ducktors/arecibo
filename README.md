@@ -57,6 +57,8 @@ All options are optional.
 | `livenessCallback` | `RouteHandler` | replies 200 with `message` | The handler of the liveness route. |
 | `readinessChecks` | `Record<string, () => unknown>` | none | The checks of the readiness route. See [Readiness checks](#readiness-checks). |
 | `checkTimeout` | `number` | `500` | The time limit of each check, in milliseconds. Use a number from 1 to 2147483647. |
+| `checkInterval` | `number` | none | If set, the checks run in the background at this interval, in milliseconds. See [Checks in the background](#checks-in-the-background). |
+| `shutdownDelay` | `number` | none | If set, the plugin starts a graceful shutdown with this delay, in milliseconds, on `SIGTERM`. See [Graceful shutdown](#graceful-shutdown). |
 | `logLevel` | `'fatal'`, `'error'`, `'warn'`, `'info'`, `'debug'`, `'trace'`, or `'silent'` | `'info'` | The log level of the two routes. |
 
 ## Custom callbacks
@@ -107,6 +109,64 @@ fastify.register(arecibo, {
 - Set `timeoutSeconds` of the Kubernetes readiness probe to a value larger than `checkTimeout`.
 - The checks do not change the liveness route.
 
+### Checks in the background
+
+Without `checkInterval`, the checks run on each readiness request. Each Pod then sends a query to your dependencies on each probe. Use `checkInterval` to run the checks at a fixed interval:
+
+```javascript
+fastify.register(arecibo, {
+  readinessChecks: { database: () => db.query('SELECT 1') },
+  checkInterval: 5000, // in milliseconds
+})
+```
+
+- The first run starts when Fastify is ready. `fastify.ready()` waits for the first run.
+- The readiness route replies with the result of the last run. It does not run the checks.
+- The next run starts `checkInterval` milliseconds after the previous run ends. Thus two runs never overlap.
+- A result can be old by up to `checkInterval` plus `checkTimeout` milliseconds.
+- The plugin logs a failed check with `fastify.log.error` only when the check starts to fail. It logs with `fastify.log.info` when the check passes again. These logs use the `logLevel` option.
+- The runs stop when Fastify closes.
+- If you use `checkInterval` without `readinessChecks`, or if the value is not a number from 1 to 2147483647, the registration fails.
+
+## Readiness state
+
+The plugin adds `fastify.arecibo`. Use it to tell Kubernetes when your application can accept traffic, for example after a cache warm-up.
+
+```javascript
+await fastify.register(arecibo)
+fastify.arecibo.setReady(false)
+
+await warmUpCache()
+fastify.arecibo.setReady(true)
+```
+
+- `setReady(false)` makes the readiness route reply with status 503 and the body `Service Unavailable`. Only `true` makes the application ready again.
+- The state applies before the readiness handler. Thus the plugin does not run `readinessCallback`, or the checks of a request, while the application is not ready. With `checkInterval`, the checks continue to run in the background.
+- `isReady()` returns the current state. The initial state is ready.
+- The state does not change the liveness route.
+- If you register the plugin more than one time in the same context, or in a child context, all registrations share one state. Registrations in two sibling contexts have two different states.
+
+## Graceful shutdown
+
+When Kubernetes stops a Pod, it sends `SIGTERM`. The cluster can still send new traffic to the Pod for some seconds. Use `shutdownDelay` to close Fastify only after this time.
+
+```javascript
+fastify.register(arecibo, {
+  shutdownDelay: 5000, // in milliseconds
+})
+```
+
+On `SIGTERM`, the plugin does these steps:
+
+1. It sets the readiness state to not ready. The readiness route replies with status 503.
+2. It waits `shutdownDelay` milliseconds. All other routes, and the liveness route, continue to reply as usual.
+3. It calls `fastify.close()`.
+
+- Without `shutdownDelay`, the plugin does not listen to `SIGTERM`.
+- Do not add a `SIGTERM` handler that calls `fastify.close()` directly. If Fastify closes during the delay, the delay stops.
+- The process exits after `fastify.close()` only if no other timer, connection, or handler keeps it open.
+- If you handle the signals yourself, call `fastify.arecibo.shutdown(delay)`. It does the same steps and returns a promise. The default delay is 5000 ms. A second call returns the same promise.
+
 ## Behaviour notes
 
 - The plugin ignores the `prefix` option of `register`, because it uses [fastify-plugin](https://github.com/fastify/fastify-plugin). To change the paths, use `readinessURL` and `livenessURL`.
@@ -151,9 +211,8 @@ readinessProbe:
 ```
 
 - In this example, the application has 150 seconds (30 x 5) to start. Kubernetes does not run the other probes until the startup probe succeeds.
-- To give the cluster time to stop new traffic to the Pod, add a `preStop` hook to the container, for example `lifecycle.preStop.sleep.seconds: 5`. Call `fastify.close()` when your process receives `SIGTERM`.
-- Set `terminationGracePeriodSeconds` of the Pod to a value longer than the `preStop` delay plus the shutdown time of your application.
-- Kubernetes enables the `sleep` action by default from version 1.30. The action is stable from version 1.34. For an older cluster, use an `exec` hook that runs `sleep`.
+- To give the cluster time to stop new traffic to the Pod, use the [`shutdownDelay`](#graceful-shutdown) option. Then you do not need a `preStop` hook.
+- Set `terminationGracePeriodSeconds` of the Pod to a value longer than `shutdownDelay` plus the shutdown time of your application. The default value is 30 seconds.
 
 ## How to commit
 
