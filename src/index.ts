@@ -19,9 +19,13 @@ import { areciboMessage } from './arecibo-message'
 const MAX_DELAY = 2147483647
 
 // `setTimeout` changes `null`, `NaN`, and out-of-range delays to 1 ms.
-// A numeric string or a fraction is a correct delay.
+// A numeric string or a fraction is a correct delay. `Number` changes other
+// values such as `null`, `true`, or `''` to a number, thus check the type.
 const isDelay = (value: unknown, min: number) =>
-  Number(value) >= min && Number(value) <= MAX_DELAY
+  (typeof value === 'number' ||
+    (typeof value === 'string' && value.trim() !== '')) &&
+  Number(value) >= min &&
+  Number(value) <= MAX_DELAY
 
 const ROUTES = {
   READINESS: '/arecibo/readiness',
@@ -289,6 +293,9 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
           // A second call gets the same promise.
           shutdown ??= (async () => {
             ready = false
+            if (closed) {
+              return
+            }
             await new Promise<void>((resolve) => {
               wait = { timer: setTimeout(resolve, Number(delay)), resolve }
             })
@@ -311,7 +318,9 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
           process.exitCode = 1
         })
       }
-      process.once('SIGTERM', onSignal)
+      // `on`, not `once`: with `once`, a second signal during the delay would
+      // stop the process at once. A second call of `shutdown` does nothing.
+      process.on('SIGTERM', onSignal)
       fastify.addHook('onClose', (_, done) => {
         process.removeListener('SIGTERM', onSignal)
         done()

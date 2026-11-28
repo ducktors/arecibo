@@ -144,7 +144,7 @@ fastify.arecibo.setReady(true)
 - The state applies before the readiness handler. Thus the plugin does not run `readinessChecks` or `readinessCallback` while the application is not ready.
 - `isReady()` returns the current state. The initial state is ready.
 - The state does not change the liveness route.
-- If you register the plugin more than one time, all registrations share one state.
+- If you register the plugin more than one time in the same context, or in a child context, all registrations share one state. Registrations in two sibling contexts have two different states.
 
 ## Graceful shutdown
 

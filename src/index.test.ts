@@ -511,7 +511,7 @@ test('shutdown', async (t) => {
     assert.equal(closes(), 1)
   })
 
-  for (const value of [-1, Number.NaN, 2 ** 31, 'abc']) {
+  for (const value of [-1, Number.NaN, 2 ** 31, 'abc', null, true, '', []]) {
     await t.test(`rejects the delay ${String(value)}`, async () => {
       const { fastify } = await build()
       await assert.rejects(
@@ -552,6 +552,27 @@ test('shutdown', async (t) => {
       assert.equal(process.listenerCount('SIGTERM'), before)
     },
   )
+
+  await t.test('keeps the shutdown on a second SIGTERM', async () => {
+    const before = process.listenerCount('SIGTERM')
+    const { fastify, closes } = await build({ shutdownDelay: 50 })
+    process.emit('SIGTERM')
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    assert.equal(process.listenerCount('SIGTERM'), before + 1)
+    process.emit('SIGTERM')
+    assert.equal(fastify.arecibo.isReady(), false)
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    assert.equal(closes(), 1)
+    assert.equal(process.listenerCount('SIGTERM'), before)
+  })
+
+  await t.test('does not wait if Fastify is already closed', async () => {
+    const { fastify } = await build()
+    await fastify.close()
+    const start = Date.now()
+    await fastify.arecibo.shutdown(60000)
+    assert.ok(Date.now() - start < 1000)
+  })
 
   await t.test('removes the SIGTERM listener on close', async () => {
     const before = process.listenerCount('SIGTERM')
