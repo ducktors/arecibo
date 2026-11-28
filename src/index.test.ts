@@ -391,3 +391,70 @@ test('readinessChecks', async (t) => {
     }
   })
 })
+
+test('setReady', async (t) => {
+  const modes: Record<string, AreciboOptions> = {
+    'the default handler': {},
+    readinessChecks: { readinessChecks: { ok: () => true } },
+    'a custom callback': { readinessCallback: async () => 'custom' },
+  }
+  for (const [title, options] of Object.entries(modes)) {
+    await t.test(`gates ${title}`, async () => {
+      const fastify = Fastify()
+      await fastify.register(arecibo, { logLevel: 'silent', ...options })
+
+      assert.equal(fastify.arecibo.isReady(), true)
+      fastify.arecibo.setReady(false)
+      assert.equal(fastify.arecibo.isReady(), false)
+      for (const method of ['GET', 'HEAD'] as const) {
+        const response = await fastify.inject({
+          method,
+          url: '/arecibo/readiness',
+        })
+        assert.equal(response.statusCode, 503)
+      }
+      const readiness = await fastify.inject('/arecibo/readiness')
+      assert.equal(readiness.payload, 'Service Unavailable')
+      assert.equal(readiness.headers['content-type'], 'text/html')
+      const liveness = await fastify.inject('/arecibo/liveness')
+      assert.equal(liveness.statusCode, 200)
+
+      fastify.arecibo.setReady(true)
+      const again = await fastify.inject('/arecibo/readiness')
+      assert.equal(again.statusCode, 200)
+    })
+  }
+
+  await t.test('does not run the checks when not ready', async () => {
+    let calls = 0
+    const fastify = Fastify()
+    await fastify.register(arecibo, {
+      logLevel: 'silent',
+      readinessChecks: { counted: () => ++calls },
+    })
+    fastify.arecibo.setReady(false)
+    await fastify.inject('/arecibo/readiness')
+    assert.equal(calls, 0)
+  })
+
+  await t.test('shares the state between two registrations', async () => {
+    const fastify = Fastify()
+    await fastify.register(arecibo, { logLevel: 'silent' })
+    await fastify.register(arecibo, {
+      logLevel: 'silent',
+      readinessURL: '/second/readiness',
+      livenessURL: '/second/liveness',
+    })
+    fastify.arecibo.setReady(false)
+    for (const url of ['/arecibo/readiness', '/second/readiness']) {
+      assert.equal((await fastify.inject(url)).statusCode, 503)
+    }
+  })
+
+  await t.test('accepts only true as ready', async () => {
+    const fastify = Fastify()
+    await fastify.register(arecibo)
+    fastify.arecibo.setReady('yes' as never)
+    assert.equal(fastify.arecibo.isReady(), false)
+  })
+})

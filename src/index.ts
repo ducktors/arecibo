@@ -1,6 +1,7 @@
 import type {
   FastifyPluginCallback,
   FastifyPluginOptions,
+  FastifyReply,
   LogLevel,
   RouteHandler,
 } from 'fastify'
@@ -82,6 +83,18 @@ declare namespace arecibo {
     livenessCallback?: RouteHandler
     logLevel?: LogLevel
   }
+
+  export interface AreciboDecorator {
+    // `false` makes the readiness route reply with status 503.
+    setReady(ready: boolean): void
+    isReady(): boolean
+  }
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    arecibo: arecibo.AreciboDecorator
+  }
 }
 
 type Opts = arecibo.AreciboOptions
@@ -146,12 +159,33 @@ const arecibo: FastifyPluginCallback<Opts> = fp<Opts>(
       )
     }
 
+    // All registrations of the plugin share one state.
+    if (!fastify.hasDecorator('arecibo')) {
+      let ready = true
+      fastify.decorate('arecibo', {
+        setReady: (value: boolean) => {
+          ready = value === true
+        },
+        isReady: () => ready,
+      })
+    }
+    const state = fastify.arecibo
+
     fastify
       .get(
         readinessURL,
         {
           schema: readinessChecks ? readinessChecksSchema : readinessSchema,
           logLevel,
+          // The hook replies before the handler, thus the checks do not run.
+          onRequest: async (_, reply: FastifyReply) => {
+            if (!state.isReady()) {
+              return reply
+                .code(503)
+                .type('text/html')
+                .send('Service Unavailable')
+            }
+          },
         },
         readinessCallback,
       )
